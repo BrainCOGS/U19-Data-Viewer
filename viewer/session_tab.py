@@ -1,21 +1,24 @@
 from utils import *
+from modules import subject, acquisition, behavior
+from viewer.plots import session_psych_curve
+from viewer.updatable_figures import *
+import pdb
+
 
 def session_tab():
     '''
     Creates the tab to view all sessions
     '''
 
-    subject = dj.create_virtual_module('subject', 'u19_subject')
-    acquisition = dj.create_virtual_module('acquisition', 'u19_acquisition')
-
-
     all_subjects = (subject.Subject & acquisition.Session).fetch('subject_fullname').tolist()
     subjects = Select(title='Subject:',value = 'All', options = ['All'] + all_subjects,
                       width = 150)
 
-    all_tasks = (dj.U('task') & acquisition.Session).fetch('task').tolist()
-    tasks = Select(title='Task:',value = 'All', options = ['All'] + all_tasks,
-                   width = 150)
+    all_levels = (dj.U('level') & acquisition.Session).fetch('level').tolist()
+    all_levels_str = [str(level) for level in all_levels]
+    levels = Select(title='Level:',value = 'All',
+                    options = ['All'] + all_levels_str,
+                    width = 150)
 
 
     def get_data_df(filter):
@@ -54,22 +57,41 @@ def session_tab():
         source.data = get_data_df(current_filter)
 
 
-    def callback_task_filter(attr, old, new):
+    def callback_level_filter(attr, old, new):
 
-        if 'task' in current_filter.keys():
-            current_filter.pop('task')
+        if 'level' in current_filter.keys():
+            current_filter.pop('level')
 
         if new != 'All':
-            current_filter['task'] = new
+            current_filter['level'] = int(new)
 
         source.data = get_data_df(current_filter)
 
+
+    def callback_update_data(attr, old, new):
+        try:
+            selected_index = source.selected.indices[0]
+            subject_fullname = str(source.data['subject_fullname'][selected_index])
+            session_date = source.data['session_date'][selected_index]
+            figure_collection.update(dict(subject_fullname=subject_fullname,
+                                          session_date=session_date))
+
+        except IndexError:
+            pass
+
+
+    figure_collection = UpdatableFigureCollectionFactory() \
+        .add_figure_creator(session_psych_curve.plot) \
+        .build()
+
+    source.selected.on_change('indices', callback_update_data)
     subjects.on_change('value', callback_subject_filter)
-    tasks.on_change('value', callback_task_filter)
+    levels.on_change('value', callback_level_filter)
 
     data_table = DataTable(source=source,
                            columns=columns,
-                           width=800,
+                           width=1000,
                            height=600)
 
-    return Panel(child=layout(column(row(subjects, tasks), data_table)), title='Session')
+    return Panel(child=layout(row(column(row(subjects, levels), data_table),
+                              column(figure_collection.updatable_list[0].fig))), title='Session')

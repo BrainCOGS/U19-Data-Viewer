@@ -3,8 +3,8 @@ import os
 from os.path import join as pjoin
 from bokeh.server.server import Server
 from bokeh.models.widgets import Tabs
-from subjecttab import subject_tab
-from sessiontab import session_tab
+from subject_tab import subject_tab
+from session_tab import session_tab
 
 import datajoint as dj
 
