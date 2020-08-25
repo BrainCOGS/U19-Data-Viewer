@@ -41,7 +41,7 @@ def main():
         description='Princeton U19 DataJoint Interface')
     parser.add_argument('-p','--port',
                         type=int,
-                        default=5006,
+                        default=9000,
                         help='port for the bokeh server',
                         action='store')
     parser.add_argument('-n','--num-proc',
@@ -65,7 +65,7 @@ def main():
         port, hostname, ipaddress)
 
     server = Server({'/': bkapp},
-                    address='0.0.0.0',
+                    address='0.0.0.0', allow_websocket_origin=["*"],
                     port=port,num_procs=nproc)
     server.start()
     print('Opening Bokeh application on http://localhost:{0}/'.format(server.port))
