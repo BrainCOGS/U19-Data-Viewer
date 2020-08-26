@@ -65,7 +65,7 @@ def main():
         port, hostname, ipaddress)
 
     server = Server({'/': bkapp},
-                    address='0.0.0.0', allow_websocket_origin=["*"],
+                    address='0.0.0.0', allow_websocket_origin='128.112.218.206:9000',
                     port=port,num_procs=nproc)
     server.start()
     print('Opening Bokeh application on http://localhost:{0}/'.format(server.port))
