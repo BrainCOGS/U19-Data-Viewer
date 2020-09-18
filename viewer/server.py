@@ -64,8 +64,14 @@ def main():
     os.environ['BOKEH_ALLOW_WS_ORIGIN']='localhost:{0},0.0.0.0:{0}'.format(
         port, hostname, ipaddress)
 
+    os.environ['BOKEH_ALLOW_WS_ORIGIN']=','.join(['localhost:{0}',
+                                                  '0.0.0.0:{0}',
+                                                  '{1}:{0},{2}:{0}',
+                                                  '{1}.princeton.edu:{0}']).format(
+        port, hostname, ipaddress)
+
     server = Server({'/': bkapp},
-                    address='0.0.0.0', allow_websocket_origin=['128.112.218.206:5900'],
+                    address='0.0.0.0',
                     port=port,num_procs=nproc)
     server.start()
     print('Opening Bokeh application on http://localhost:{0}/'.format(server.port))
