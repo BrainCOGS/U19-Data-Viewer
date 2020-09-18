@@ -21,21 +21,30 @@ def subject_tab():
 
     def get_data_df(filter):
 
-        return pd.DataFrame((subject.Subject & filter).fetch(
+        df = pd.DataFrame((subject.Subject & filter).fetch(
             'subject_fullname', 'user_id', 'sex', 'dob', 'location', 'line',
             as_dict=True))
+        df['dob'] = pd.to_datetime(df['dob']).dt.strftime('%Y-%m-%d')
+        df['dob'] = df['dob'].replace('NaT', 'Unknown')
+        return df
 
     source = ColumnDataSource(get_data_df(current_filter))
 
     # Table for displaying subjects
     columns = [
         TableColumn(field="subject_fullname", title="Subject"),
-        TableColumn(field="dob", title="DOB", formatter=DateFormatter()),
+        TableColumn(field="dob", title="DOB"),
         TableColumn(field="sex", title="Gender"),
         TableColumn(field="user_id", title="Owner"),
         TableColumn(field="location", title="Location"),
         TableColumn(field="line", title="Line")
     ]
+
+    figure_collection = UpdatableFigureCollectionFactory() \
+        .add_figure_creator(water_weight.plot) \
+        .add_figure_creator(performance_level.plot) \
+        .add_figure_creator(subject_psych_curve.plot) \
+        .build()
 
     def callback_filter(attr, old, new, field):
 
@@ -46,6 +55,9 @@ def subject_tab():
             current_filter[field] = new
 
         source.data = get_data_df(current_filter)
+        subjs = source.data['subject_fullname']
+        if len(subjs)==1:
+            figure_collection.update(dict(subject_fullname=subjs[0]))
 
         if field == 'subject_fullname':
             if new != 'All':
@@ -72,11 +84,7 @@ def subject_tab():
         except IndexError:
             pass
 
-    figure_collection = UpdatableFigureCollectionFactory() \
-        .add_figure_creator(water_weight.plot) \
-        .add_figure_creator(performance_level.plot) \
-        .add_figure_creator(subject_psych_curve.plot) \
-        .build()
+
 
     figure_collection.update(dict(subject_fullname=all_subjects[0]))
 

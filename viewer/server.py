@@ -29,7 +29,7 @@ def datajoint_dot():
 
 def bkapp(doc):
 
-    tabs = Tabs(tabs = [datajoint_dot(), subject_tab(), session_tab()])
+    tabs = Tabs(tabs=[datajoint_dot(), subject_tab(), session_tab()], active=1)
 
     doc.add_root(tabs)
     doc.title = 'Princeton U19 DataJoint Interface'
@@ -41,7 +41,7 @@ def main():
         description='Princeton U19 DataJoint Interface')
     parser.add_argument('-p','--port',
                         type=int,
-                        default=9000,
+                        default=5900,
                         help='port for the bokeh server',
                         action='store')
     parser.add_argument('-n','--num-proc',
@@ -65,7 +65,7 @@ def main():
         port, hostname, ipaddress)
 
     server = Server({'/': bkapp},
-                    address='0.0.0.0', allow_websocket_origin='128.112.218.206:9000',
+                    address='0.0.0.0', allow_websocket_origin=['128.112.218.206:5900'],
                     port=port,num_procs=nproc)
     server.start()
     print('Opening Bokeh application on http://localhost:{0}/'.format(server.port))
