@@ -1,10 +1,8 @@
-FROM python:alpine3.7
+FROM python:3.7.6-slim-buster
+RUN apt-get update && apt-get install -y openssh-server graphviz
 COPY . /data_viewer
 WORKDIR /data_viewer
 RUN pip install --upgrade pip
-RUN apk update
-RUN apk add make automake gcc g++ subversion python3-dev
-RUN pip install Cython
 RUN pip install /data_viewer
 EXPOSE 5000
 ENTRYPOINT [ "python" ]
