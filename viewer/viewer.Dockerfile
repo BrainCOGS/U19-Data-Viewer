@@ -5,5 +5,5 @@ WORKDIR /data_viewer
 RUN pip install --upgrade pip
 RUN pip install /data_viewer
 EXPOSE 5000
-# ENTRYPOINT [ "python" ]
-# CMD [ "/data_viewer/viewer/server.py" ]
+ENTRYPOINT [ "python" ]
+CMD [ "/data_viewer/viewer/server.py" ]
