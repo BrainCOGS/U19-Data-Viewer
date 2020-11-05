@@ -8,6 +8,7 @@ from session_tab import session_tab
 
 import datajoint as dj
 
+
 def datajoint_dot():
     from bokeh.models import Div
     from bokeh.layouts import layout
@@ -41,7 +42,7 @@ def main():
         description='Princeton U19 DataJoint Interface')
     parser.add_argument('-p','--port',
                         type=int,
-                        default=5900,
+                        default=5000,
                         help='port for the bokeh server',
                         action='store')
     parser.add_argument('-n','--num-proc',
