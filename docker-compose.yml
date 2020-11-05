@@ -28,8 +28,8 @@ services:
     env_file:
       - .env
     build:
-      context: ./viewer
-      dockerfile: viewer.Dockerfile
+      context: .
+      dockerfile: ./viewer/viewer.Dockerfile
     expose:
       - 5000
 
