@@ -1,4 +1,3 @@
-import datajoint as dj
 import pandas as pd
 import os
 from os.path import join as pjoin
@@ -6,6 +5,8 @@ from bokeh.server.server import Server
 from bokeh.models.widgets import Tabs
 from subject_tab import subject_tab
 from session_tab import session_tab
+
+import datajoint as dj
 
 
 def datajoint_dot():
@@ -50,7 +51,7 @@ def main():
                         help='number of processes for the bokeh server (zero is auto)',
                         action='store')
     parser.add_argument('-b','--browser',
-                        default=True,
+                        default = False,
                         action='store_true')
 
 
@@ -60,14 +61,15 @@ def main():
     browser = ops.browser
     import socket
     hostname = socket.gethostname()
-    print(hostname)
     ipaddress = socket.gethostbyname(hostname)
-    print(ipaddress)
+    os.environ['BOKEH_ALLOW_WS_ORIGIN']='localhost:{0},0.0.0.0:{0}'.format(
+        port, hostname, ipaddress)
 
     os.environ['BOKEH_ALLOW_WS_ORIGIN']=','.join(['localhost:{0}',
                                                   '0.0.0.0:{0}',
                                                   '{1}:{0},{2}:{0}',
-                                                  '{1}.princeton.edu:{0}']).format(
+                                                  '{1}.princeton.edu:{0}',
+                                                  'braincogs01.pni.princeton.edu']).format(
         port, hostname, ipaddress)
 
     server = Server({'/': bkapp},
@@ -83,3 +85,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
