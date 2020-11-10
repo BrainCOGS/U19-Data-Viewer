@@ -6,4 +6,4 @@ RUN pip install --upgrade pip
 RUN pip install -e /data_viewer
 EXPOSE 5000
 ENTRYPOINT [ "python" ]
-CMD [ "/data_viewer/viewer/server_test.py" ]
+CMD [ "/data_viewer/viewer/server.py" ]
