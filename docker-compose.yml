@@ -1,0 +1,39 @@
+version: '3'
+services:
+  apache:
+    env_file:
+      - .env
+    build:
+      context: ./apache
+      dockerfile: 'pni-apache.Dockerfile'
+    networks:
+      - proxy
+      - default
+    volumes:
+      - './apache/sites:/usr/local/apache2/conf/sites/:ro'
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}-http.entrypoints=http"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}-https.entrypoints=https"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}-https.tls=true"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}-https.tls.certresolver=letsencrypt-resolver"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}-http.middlewares=${COMPOSE_PROJECT_NAME}-redirectscheme@docker"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}-http.rule=Host(`${SERVICEHOSTNAME}`)"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME}-https.rule=Host(`${SERVICEHOSTNAME}`)"
+      - "traefik.http.middlewares.${COMPOSE_PROJECT_NAME}-redirectscheme.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.${COMPOSE_PROJECT_NAME}-redirectscheme.redirectscheme.permanent=true"
+      - "traefik.http.services.${COMPOSE_PROJECT_NAME}.loadbalancer.server.port=80"
+      - "traefik.docker.network=proxy"
+  flask-root:
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: ./viewer/viewer.Dockerfile
+    expose:
+      - 5000
+
+
+networks:
+  proxy:
+    external: true
