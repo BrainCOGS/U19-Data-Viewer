@@ -57,9 +57,9 @@ def plot(key=None):
     p, plots = psych_curve(psych_data, psych_error, psych_fit,
                            'Subject psychometric curve so far')
 
-    return p, [(plots[0], get_psych_data),
-               (plots[1], get_psych_error),
-               (plots[2], get_psych_fit)]
+    return p, [(plots[0], get_psych_data, None),
+               (plots[1], get_psych_error, None),
+               (plots[2], get_psych_fit, None)]
 
 
 if __name__ == '__main__':
