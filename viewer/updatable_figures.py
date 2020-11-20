@@ -2,6 +2,7 @@
 This module contains classes that allow convient updates upon selection events
 '''
 
+
 class UpdatableFigure:
 
     def __init__(self, fig, subplots):
@@ -11,13 +12,17 @@ class UpdatableFigure:
 
     def update(self, key):
 
-        for (subplot, get_data) in self.subplots:
+        for (subplot, get_data, update_view) in self.subplots:
             new_data = get_data(key)
             if type(subplot) == list:
                 for sp in subplot:
                     sp.data_source.data = new_data
+                    if update_view:
+                        update_view(self.fig, sp, new_data)
             else:
                 subplot.data_source.data = new_data
+                if update_view:
+                    update_view(self.fig, subplot, new_data)
 
 
 class UpdatableFigureCollection:
