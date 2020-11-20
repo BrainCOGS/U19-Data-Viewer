@@ -26,7 +26,8 @@ def session_tab():
         return pd.DataFrame((
             acquisition.Session & filter).fetch(
                 'subject_fullname', 'session_date', 'session_number', 'session_location',
-                'task', 'level', 'session_protocol', 'session_performance',
+                'task', 'level', 'session_protocol', 'session_performance', 'num_trials',
+                'is_bad_session', 'session_comments',
                 as_dict=True))
 
     current_filter = dict()
@@ -43,6 +44,9 @@ def session_tab():
         TableColumn(field="level", title="Level"),
         TableColumn(field="session_protocol", title="Protocol"),
         TableColumn(field="session_performance", title="Performance"),
+        TableColumn(field="num_trials", title="Trial Counts"),
+        TableColumn(field="is_bad_session", title="Is Bad"),
+        TableColumn(field="session_comments", title="Comments"),
     ]
 
 
