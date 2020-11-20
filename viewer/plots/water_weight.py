@@ -1,14 +1,15 @@
 from viewer.modules import subject, action
 from viewer.utils import *
 
+
 def plot(key=None):
 
     def get_water_data(key):
         water_info = (action.WaterAdministration & key).fetch(format='frame').reset_index()
         data_water = {'water_dates': water_info['administration_date'].to_list(),
-                        'earned'     : water_info['earned'].to_list(),
-                        'supplement' : water_info['supplement'].to_list(),
-                        'received'   : water_info['received'].to_list()}
+                      'earned'     : water_info['earned'].to_list(),
+                      'supplement' : water_info['supplement'].to_list(),
+                      'received'   : water_info['received'].to_list()}
 
         return data_water
 
@@ -17,7 +18,7 @@ def plot(key=None):
                        key).fetch(format='frame').reset_index()
 
         data_weight = {'weighing_dates': weight_info['weighing_time'].to_list(),
-                        'weight'        : weight_info['weight'].to_list()}
+                       'weight'        : weight_info['weight'].to_list()}
         return data_weight
 
 
@@ -34,10 +35,11 @@ def plot(key=None):
                x_axis_label='Date',
                y_axis_label='Water Intake [mL]')
     p.y_range = Range1d(0, 5)
-    water_plot = p.vbar_stack(water_methods, x='water_dates',
-                            width=datetime.timedelta(days=0.4),
-                            color=colors, source=data_water,
-                            legend_label=water_methods)
+    water_plot = p.vbar_stack(
+        water_methods, x='water_dates',
+        width=datetime.timedelta(days=0.4),
+        color=colors, source=data_water,
+        legend_label=water_methods)
 
     p.xgrid.grid_line_color = None
     p.outline_line_color = None
@@ -52,7 +54,8 @@ def plot(key=None):
                             y_range_name="weight",
                             source=data_weight, color='black')
 
-    return p, [(water_plot, get_water_data), (weight_plot, get_weight_data)]
+    return p, [(water_plot, get_water_data, None),
+               (weight_plot, get_weight_data, None)]
 
 
 if __name__ == '__main__':
