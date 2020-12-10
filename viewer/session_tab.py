@@ -16,7 +16,7 @@ def session_tab():
 
     all_levels = (dj.U('level') & acquisition.Session).fetch('level').tolist()
     all_levels_str = [str(level) for level in all_levels]
-    levels = Select(title='Level:',value = 'All',
+    levels = Select(title='Level:', value = 'All',
                     options = ['All'] + all_levels_str,
                     width = 150)
 
@@ -57,6 +57,11 @@ def session_tab():
 
         if new != 'All':
             current_filter['subject_fullname'] = new
+            subject_levels = (
+                dj.U('level') &
+                (acquisition.Session & current_filter)).fetch('level').tolist()
+            subject_levels_str = [str(level) for level in subject_levels]
+            levels.options = ['All'] + subject_levels_str
 
         source.data = get_data_df(current_filter)
 
@@ -68,6 +73,12 @@ def session_tab():
 
         if new != 'All':
             current_filter['level'] = int(new)
+
+            level_subjects = (
+                dj.U('subject_fullname') & (acquisition.Session & current_filter)
+            ).fetch('subject_fullname').tolist()
+
+            subjects.options = ['All'] + level_subjects
 
         source.data = get_data_df(current_filter)
 
