@@ -8,8 +8,7 @@ def plot(key=None):
         water_info = (action.WaterAdministration & key).fetch(format='frame').reset_index()
         data_water = {'water_dates': water_info['administration_date'].to_list(),
                       'earned'     : water_info['earned'].to_list(),
-                      'supplement' : water_info['supplement'].to_list(),
-                      'received'   : water_info['received'].to_list()}
+                      'supplement' : water_info['supplement'].to_list()}
 
         return data_water
 
@@ -22,8 +21,8 @@ def plot(key=None):
         return data_weight
 
 
-    water_methods = ['earned', 'supplement', 'received']
-    colors = ["#c9d9d3", "#718dbf", "#e84d60"]
+    water_methods = ['earned', 'supplement']
+    colors = ["#c9d9d3", "#e84d60"]
 
     if key is None:
         key = dict(subject_fullname='emanuele_B208')
