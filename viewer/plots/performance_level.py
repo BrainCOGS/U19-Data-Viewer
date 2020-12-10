@@ -35,7 +35,7 @@ def plot(key=None):
                 p.y_range = Range1d(
                     0, max([max(data_performance['level']), 10]), min_interval=2)
         else:
-            if np.isnan(data_performance[subplot.y_range_name]):
+            if np.isnan(data_performance[subplot.y_range_name][0]):
                 p.extra_y_ranges[subplot.y_range_name] = Range1d(
                     0, 300)
             else:
