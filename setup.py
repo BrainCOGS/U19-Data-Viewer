@@ -4,7 +4,7 @@ from os import path
 import sys
 
 setup(
-    name='Princeton Data Viewer',
+    name='princeton-u19-data-viewer',
     version='0.0.0',
     description="Data Viewer for Princeton Data pipeline",
     author='Shan Shen',

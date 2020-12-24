@@ -1,5 +1,5 @@
 from viewer.utils import *
-from viewer.modules import subject, behavior
+from viewer.modules import subject, behavior, acquisition
 from viewer.plots.psych_curve import psych_curve
 import pdb
 
@@ -9,9 +9,11 @@ default_data = {'x': [np.nan], 'y': [np.nan]}
 def plot(key=None):
 
     def create_query(key):
-        return behavior.TowersSubjectPsych & \
-               (subject.Subject & key).aggr(behavior.TowersSubjectPsych,
-                                            latest_date='max(latest_date)')
+        cpsych = behavior.TowersSubjectCumulativePsych
+        return cpsych & (acquisition.Session &
+                         (dj.U('subject_fullname', 'session_start_time') & (subject.Subject & key).aggr(
+            acquisition.Session & cpsych,
+            session_start_time='max(session_start_time)')))
 
     def get_psych_data(key):
 
@@ -55,9 +57,9 @@ def plot(key=None):
     p, plots = psych_curve(psych_data, psych_error, psych_fit,
                            'Subject psychometric curve so far')
 
-    return p, [(plots[0], get_psych_data),
-               (plots[1], get_psych_error),
-               (plots[2], get_psych_fit)]
+    return p, [(plots[0], get_psych_data, None),
+               (plots[1], get_psych_error, None),
+               (plots[2], get_psych_fit, None)]
 
 
 if __name__ == '__main__':
