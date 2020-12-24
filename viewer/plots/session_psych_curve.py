@@ -1,5 +1,5 @@
 from viewer.utils import *
-from viewer.modules import subject, behavior
+from viewer.modules import subject, behavior, puffs, acquisition
 from viewer.plots.psych_curve import psych_curve
 import datetime
 import pdb
@@ -10,7 +10,10 @@ default_data = {'x': [np.nan], 'y': [np.nan]}
 def plot(key=None):
 
     def create_query(key):
-        return behavior.TowersSessionPsych & key
+        if (acquisition.Session & key).fetch1('task') == 'AirPuffs':
+            return puffs.PuffsSessionPsych & key
+        else:
+            return behavior.TowersSessionPsych & key
 
     def get_psych_data(key):
 

@@ -1,5 +1,5 @@
 from viewer.utils import *
-from viewer.modules import subject, behavior, acquisition
+from viewer.modules import subject, behavior, acquisition, puffs
 from viewer.plots.psych_curve import psych_curve
 import pdb
 
@@ -9,7 +9,10 @@ default_data = {'x': [np.nan], 'y': [np.nan]}
 def plot(key=None):
 
     def create_query(key):
-        cpsych = behavior.TowersSubjectCumulativePsych
+        if acquisition.Session & key & 'task="AirPuffs"':
+            cpsych = puffs.PuffsSubjectCumulativePsych
+        else:
+            cpsych = behavior.TowersSubjectCumulativePsych
         return cpsych & (acquisition.Session &
                          (dj.U('subject_fullname', 'session_start_time') & (subject.Subject & key).aggr(
             acquisition.Session & cpsych,
