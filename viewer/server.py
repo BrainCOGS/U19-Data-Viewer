@@ -41,7 +41,7 @@ def main():
         description='Princeton U19 DataJoint Interface')
     parser.add_argument('-p','--port',
                         type=int,
-                        default=5900,
+                        default=5600,
                         help='port for the bokeh server',
                         action='store')
     parser.add_argument('-n','--num-proc',
