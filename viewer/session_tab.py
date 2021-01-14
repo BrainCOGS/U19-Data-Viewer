@@ -11,15 +11,18 @@ def session_tab():
     '''
 
     all_subjects = (subject.Subject & acquisition.Session).fetch('subject_fullname').tolist()
-    subjects = Select(title='Subject:',value = 'All', options = ['All'] + all_subjects,
-                      width = 150)
+    subjects = Select(title='Subject:', value='All', options=['All'] + all_subjects,
+                      width=150)
 
     all_levels = (dj.U('level') & acquisition.Session).fetch('level').tolist()
     all_levels_str = [str(level) for level in all_levels]
-    levels = Select(title='Level:', value = 'All',
-                    options = ['All'] + all_levels_str,
-                    width = 150)
+    levels = Select(title='Level:', value='All',
+                    options=['All'] + all_levels_str,
+                    width=150)
 
+    all_tasks = (dj.U('task') & acquisition.Session).fetch('task').tolist()
+    tasks = Select(title='Task:', value='All', options=['All'] + all_tasks,
+                   width=150)
 
     def get_data_df(filter):
 
@@ -49,7 +52,6 @@ def session_tab():
         TableColumn(field="session_comments", title="Comments"),
     ]
 
-
     def callback_subject_filter(attr, old, new):
 
         if 'subject_fullname' in current_filter.keys():
@@ -63,8 +65,13 @@ def session_tab():
             subject_levels_str = [str(level) for level in subject_levels]
             levels.options = ['All'] + subject_levels_str
 
-        source.data = get_data_df(current_filter)
+            subject_tasks = (
+                dj.U('task') &
+                (acquisition.Session & current_filter)).fetch('task').tolist()
 
+            tasks.options = ['All'] + subject_tasks
+
+        source.data = get_data_df(current_filter)
 
     def callback_level_filter(attr, old, new):
 
@@ -80,8 +87,35 @@ def session_tab():
 
             subjects.options = ['All'] + level_subjects
 
+            level_tasks = (
+                dj.U('task') & (acquisition.Session & current_filter)
+            ).fetch('task').tolist()
+
+            tasks.options = ['All'] + level_tasks
+
         source.data = get_data_df(current_filter)
 
+    def callback_task_filter(attr, old, new):
+
+        if 'task' in current_filter.keys():
+            current_filter.pop('task')
+
+        if new != 'All':
+            current_filter['task'] = new
+
+        task_subjects = (
+            dj.U('subject_fullname') & (acquisition.Session & current_filter)
+        ).fetch('subject_fullname').tolist()
+
+        subjects.options = ['All'] + task_subjects
+
+        task_levels = (
+            dj.U('level') &
+            (acquisition.Session & current_filter)).fetch('level').tolist()
+        task_levels_str = [str(level) for level in task_levels]
+        levels.options = ['All'] + task_levels_str
+
+        source.data = get_data_df(current_filter)
 
     def callback_update_data(attr, old, new):
         try:
@@ -94,7 +128,6 @@ def session_tab():
         except IndexError:
             pass
 
-
     figure_collection = UpdatableFigureCollectionFactory() \
         .add_figure_creator(session_psych_curve.plot) \
         .build()
@@ -102,11 +135,12 @@ def session_tab():
     source.selected.on_change('indices', callback_update_data)
     subjects.on_change('value', callback_subject_filter)
     levels.on_change('value', callback_level_filter)
+    tasks.on_change('value', callback_task_filter)
 
     data_table = DataTable(source=source,
                            columns=columns,
                            width=1000,
                            height=600)
 
-    return Panel(child=layout(row(column(row(subjects, levels), data_table),
+    return Panel(child=layout(row(column(row(subjects, levels, tasks), data_table),
                               column(figure_collection.updatable_list[0].fig))), title='Session')

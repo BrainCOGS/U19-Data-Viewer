@@ -56,7 +56,7 @@ def subject_tab():
 
         source.data = get_data_df(current_filter)
         subjs = source.data['subject_fullname']
-        if len(subjs)==1:
+        if len(subjs) == 1:
             figure_collection.update(dict(subject_fullname=subjs[0]))
 
         if field == 'subject_fullname':
@@ -74,6 +74,7 @@ def subject_tab():
             else:
                 all_subjects = subject.Subject.fetch('subject_fullname').tolist()
                 subjects.options = ['All'] + all_subjects
+
 
     def callback_update_data(attr, old, new):
         try:

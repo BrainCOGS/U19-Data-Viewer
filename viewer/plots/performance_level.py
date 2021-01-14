@@ -1,4 +1,4 @@
-from viewer.modules import subject, acquisition, behavior
+from viewer.modules import subject, acquisition, behavior, puffs
 from viewer.utils import *
 
 
@@ -6,7 +6,11 @@ def plot(key=None):
 
     def get_data(key):
 
-        q = (acquisition.Session & key).proj(..., n_trials='num_trials')
+        task = (dj.U('task') & (acquisition.Session & key)).fetch1('task')
+        if task == 'AirPuffs':
+            q = (acquisition.Session & key).aggr(puffs.PuffsSession.Trial.proj(), n_trials='count(*)') * acquisition.Session
+        else:
+            q = (acquisition.Session & key).proj(..., n_trials='num_trials')
 
         if len(q):
             performance_info = q.fetch(
