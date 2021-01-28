@@ -56,6 +56,8 @@ def plot(key=None):
                x_axis_label='Date',
                y_axis_label='Task level', y_axis_location='right')
 
+    p.xaxis.formatter = DatetimeTickFormatter(days='%m/%d/%y')
+
     p.y_range = Range1d(0, max([max(data_performance['level']), 10]), min_interval=2)
     level_plot = p.vbar(
         x='session_dates', top='level',

@@ -10,7 +10,7 @@ class UpdatableFigure:
         self.fig = fig
         self.subplots = subplots
 
-    def update(self, key):
+    def update(self, key, filter=None):
 
         for (subplot, get_data, update_view) in self.subplots:
             new_data = get_data(key)

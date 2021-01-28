@@ -33,6 +33,9 @@ def plot(key=None):
     p = figure(x_axis_type="datetime", plot_width=600, plot_height=300, title='Water and Weight',
                x_axis_label='Date',
                y_axis_label='Water Intake [mL]')
+
+    p.xaxis.formatter = DatetimeTickFormatter(days='%m/%d/%y')
+
     p.y_range = Range1d(0, 5)
     water_plot = p.vbar_stack(
         water_methods, x='water_dates',
