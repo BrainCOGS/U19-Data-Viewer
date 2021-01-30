@@ -30,7 +30,7 @@ def datajoint_dot():
 
 def bkapp(doc):
 
-    tabs = Tabs(tabs=[datajoint_dot(), subject_tab(), session_tab()], active=1)
+    tabs = Tabs(tabs=[datajoint_dot(), subject_tab, session_tab()], active=1)
 
     doc.add_root(tabs)
     doc.title = 'Princeton U19 DataJoint Interface'

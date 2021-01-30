@@ -143,4 +143,4 @@ def session_tab():
                            height=600)
 
     return Panel(child=layout(row(column(row(subjects, levels, tasks), data_table),
-                              column(figure_collection.updatable_list[0].fig))), title='Session')
+                              column(figure_collection.updatable_list[0][0].fig))), title='Session')

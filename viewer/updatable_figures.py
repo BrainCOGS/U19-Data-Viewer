@@ -10,17 +10,24 @@ class UpdatableFigure:
         self.fig = fig
         self.subplots = subplots
 
-    def update(self, key, filter=None):
+    def update(self, key, plot_filter=None):
 
         for (subplot, get_data, update_view) in self.subplots:
-            new_data = get_data(key)
+            if plot_filter:
+                new_data = get_data(key, plot_filter)
+            else:
+                new_data = get_data(key)
+
             if type(subplot) == list:
                 for sp in subplot:
                     sp.data_source.data = new_data
                     if update_view:
                         update_view(self.fig, sp, new_data)
             else:
-                subplot.data_source.data = new_data
+                try:
+                    subplot.data_source.data = new_data
+                except:
+                    subplot.text = new_data
                 if update_view:
                     update_view(self.fig, subplot, new_data)
 
@@ -33,8 +40,11 @@ class UpdatableFigureCollection:
 
     def update(self, key):
 
-        for fig in self.updatable_list:
-            fig.update(key)
+        for (fig, plot_filter) in self.updatable_list:
+            if plot_filter:
+                fig.update(key, plot_filter)
+            else:
+                fig.update(key)
 
 
 class UpdatableFigureCollectionFactory:
@@ -43,16 +53,21 @@ class UpdatableFigureCollectionFactory:
 
         self.figure_creator_list = []
 
-    def add_figure_creator(self, creator):
+    def add_figure_creator(self, creator, plot_filter=None):
 
-        self.figure_creator_list.append(creator)
+        self.figure_creator_list.append([creator, plot_filter])
         return self
 
     def build(self):
 
         updatable_figure_list = []
-        for creator in self.figure_creator_list:
-            p, subplots = creator()
-            updatable_figure_list.append(UpdatableFigure(p, subplots))
+        for (creator, plot_filter) in self.figure_creator_list:
+            if plot_filter:
+                p, subplots = creator(None, plot_filter)
+            else:
+                p, subplots = creator()
+                plot_filter = None
+            updatable_figure_list.append(
+                [UpdatableFigure(p, subplots), plot_filter])
 
         return UpdatableFigureCollection(updatable_figure_list)
