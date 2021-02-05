@@ -85,8 +85,8 @@ def subject_tab():
         source.data = get_data_df(current_filter)
         subjs = source.data['subject_fullname']
         if len(subjs) == 1:
-            update_level_filter(subjs[0])
-            figure_collection.update(dict(subject_fullname=subjs[0]))
+            source.selected.indices = [0]
+            # figure_collection.update(dict(subject_fullname=subjs[0]))
 
         if field == 'subject_fullname':
             if new != 'All':
