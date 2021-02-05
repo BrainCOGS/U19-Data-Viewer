@@ -59,17 +59,26 @@ def session_tab():
 
         if new != 'All':
             current_filter['subject_fullname'] = new
-            subject_levels = (
-                dj.U('level') &
-                (acquisition.Session & current_filter)).fetch('level').tolist()
-            subject_levels_str = [str(level) for level in subject_levels]
-            levels.options = ['All'] + subject_levels_str
 
-            subject_tasks = (
-                dj.U('task') &
-                (acquisition.Session & current_filter)).fetch('task').tolist()
+        filter_without_level = current_filter.copy()
+        if 'level' in filter_without_level:
+            filter_without_level.pop('level')
 
-            tasks.options = ['All'] + subject_tasks
+        subject_levels = (
+            dj.U('level') &
+            (acquisition.Session & filter_without_level)).fetch('level').tolist()
+        subject_levels_str = [str(level) for level in subject_levels]
+        levels.options = ['All'] + subject_levels_str
+
+        filter_without_task = current_filter.copy()
+        if 'task' in filter_without_task:
+            filter_without_task.pop('task')
+
+        subject_tasks = (
+            dj.U('task') &
+            (acquisition.Session & filter_without_task)).fetch('task').tolist()
+
+        tasks.options = ['All'] + subject_tasks
 
         source.data = get_data_df(current_filter)
 
@@ -81,17 +90,25 @@ def session_tab():
         if new != 'All':
             current_filter['level'] = int(new)
 
-            level_subjects = (
-                dj.U('subject_fullname') & (acquisition.Session & current_filter)
-            ).fetch('subject_fullname').tolist()
+        filter_without_subject = current_filter.copy()
+        if 'subject_fullname' in filter_without_subject:
+            filter_without_subject.pop('subject_fullname')
 
-            subjects.options = ['All'] + level_subjects
+        level_subjects = (
+            dj.U('subject_fullname') & (acquisition.Session & filter_without_subject)
+        ).fetch('subject_fullname').tolist()
 
-            level_tasks = (
-                dj.U('task') & (acquisition.Session & current_filter)
-            ).fetch('task').tolist()
+        subjects.options = ['All'] + level_subjects
 
-            tasks.options = ['All'] + level_tasks
+        filter_without_task = current_filter.copy()
+        if 'task' in filter_without_task:
+            filter_without_task.pop('task')
+
+        level_tasks = (
+            dj.U('task') & (acquisition.Session & filter_without_task)
+        ).fetch('task').tolist()
+
+        tasks.options = ['All'] + level_tasks
 
         source.data = get_data_df(current_filter)
 
@@ -103,16 +120,26 @@ def session_tab():
         if new != 'All':
             current_filter['task'] = new
 
+        filter_without_subject = current_filter.copy()
+        if 'subject_fullname' in filter_without_subject:
+            filter_without_subject.pop('subject_fullname')
+
         task_subjects = (
-            dj.U('subject_fullname') & (acquisition.Session & current_filter)
+            dj.U('subject_fullname') & (acquisition.Session & filter_without_subject)
         ).fetch('subject_fullname').tolist()
 
         subjects.options = ['All'] + task_subjects
 
+        filter_without_level = current_filter.copy()
+
+        if 'level' in filter_without_level:
+            filter_without_level.pop('level')
+
         task_levels = (
             dj.U('level') &
-            (acquisition.Session & current_filter)).fetch('level').tolist()
+            (acquisition.Session & filter_without_level)).fetch('level').tolist()
         task_levels_str = [str(level) for level in task_levels]
+
         levels.options = ['All'] + task_levels_str
 
         source.data = get_data_df(current_filter)
