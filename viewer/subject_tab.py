@@ -17,7 +17,7 @@ def subject_tab():
 
     all_subjects = (subject.Subject).fetch('subject_fullname').tolist()
     subjects = Select(title='Subject:', value='All', options=['All'] + all_subjects,
-                    width=150)
+                      width=150)
 
     all_owners = (dj.U('user_id') & subject.Subject).fetch('user_id').tolist()
     owners = Select(title='Owner:', value='All', options=['All'] + all_owners,
@@ -54,11 +54,11 @@ def subject_tab():
         task = (dj.U('task') & (acquisition.Session & dict(subject_fullname=subj))).fetch('task')[0]
         if task == 'AirPuffs':
             all_levels = list((dj.U('psych_level') &
-                                (puffs.PuffsSubjectCumulativePsychLevel &
+                               (puffs.PuffsSubjectCumulativePsychLevel &
                                 dict(subject_fullname=subj))).fetch('psych_level'))
         elif task == 'Towers':
             all_levels = list((dj.U('psych_level') &
-                                (behavior.TowersSubjectCumulativePsychLevel &
+                               (behavior.TowersSubjectCumulativePsychLevel &
                                 dict(subject_fullname=subj))).fetch('psych_level'))
         else:
             all_levels = []
@@ -86,7 +86,7 @@ def subject_tab():
         subjs = source.data['subject_fullname']
         if len(subjs) == 1:
             source.selected.indices = [0]
-            # figure_collection.update(dict(subject_fullname=subjs[0]))
+            figure_collection.update(dict(subject_fullname=subjs[0]))
 
         if field == 'subject_fullname':
             if new != 'All':
