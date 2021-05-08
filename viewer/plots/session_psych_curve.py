@@ -7,53 +7,61 @@ import pdb
 default_data = {'x': [np.nan], 'y': [np.nan]}
 
 
-def plot(key=None):
+def plot(key=None, blocks_type=None):
 
-    def create_query(key):
+    def create_query(key, blocks_type=None):
         if (dj.U('task') & (acquisition.Session & key)).fetch1('task') == 'AirPuffs':
             return puffs.PuffsSessionPsych & key
+        elif blocks_type:
+            return behavior.TowersSessionPsychTask & key & {'blocks_type': blocks_type}
         else:
             return behavior.TowersSessionPsych & key
 
-    def get_psych_data(key):
+    def get_psych_data(key, blocks_type=None):
 
         data = default_data
-        q = create_query(key)
+        q = create_query(key, blocks_type)
         if len(q):
             psych = q.fetch1()
-            data = {'x': np.squeeze(psych['session_delta_data']).tolist(),
-                    'y': np.squeeze(psych['session_pright_data']).tolist()}
+            delta_data = psych['blocks_delta_data'] if blocks_type else psych['session_delta_data']
+            pright_data = psych['blocks_pright_data'] if blocks_type else psych['session_pright_data']
+            data = {'x': np.squeeze(delta_data).tolist(),
+                    'y': np.squeeze(pright_data).tolist()}
 
         return data
 
-    def get_psych_error(key):
+    def get_psych_error(key, blocks_type=None):
 
         data = default_data
-        q = create_query(key)
+        q = create_query(key, blocks_type)
         if len(q):
             psych = q.fetch1()
-            data = {'x': np.squeeze(psych['session_delta_error']).tolist(),
-                    'y': np.squeeze(psych['session_pright_error']).tolist()}
+            delta_error = psych['blocks_delta_error'] if blocks_type else psych['session_delta_error']
+            pright_error = psych['blocks_pright_error'] if blocks_type else psych['session_pright_error']
+            data = {'x': np.squeeze(delta_error).tolist(),
+                    'y': np.squeeze(pright_error).tolist()}
 
         return data
 
-    def get_psych_fit(key):
+    def get_psych_fit(key, blocks_type=None):
 
         data = default_data
-        q = create_query(key)
+        q = create_query(key, blocks_type)
         if len(q):
             psych = q.fetch1()
-            data = {'x': np.squeeze(psych['session_delta_fit']).tolist(),
-                    'y': np.squeeze(psych['session_pright_fit']).tolist()}
+            delta_fit = psych['blocks_delta_fit'] if blocks_type else psych['session_delta_fit']
+            pright_fit = psych['blocks_pright_fit'] if blocks_type else psych['session_pright_fit']
+            data = {'x': np.squeeze(delta_fit).tolist(),
+                    'y': np.squeeze(pright_fit).tolist()}
         return data
 
     if key is None:
         key = dict(subject_fullname='emanuele_B208',
                    session_date=datetime.date(2018, 7, 17))
 
-    psych_data = get_psych_data(key)
-    psych_error = get_psych_error(key)
-    psych_fit = get_psych_fit(key)
+    psych_data = get_psych_data(key, blocks_type)
+    psych_error = get_psych_error(key, blocks_type)
+    psych_fit = get_psych_fit(key, blocks_type)
 
     p, plots = psych_curve(psych_data, psych_error, psych_fit,
                            'Session psychometric curve')
