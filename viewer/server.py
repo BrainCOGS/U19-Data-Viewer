@@ -20,7 +20,7 @@ def datajoint_dot():
 
     try:
         svg = (dj.Diagram(subject) + dj.Diagram(action) + dj.Diagram(acquisition)).make_dot().create_svg()
-        div = Div(text = '<object data={0}'.format(svg.decode('utf-8')))
+        div = Div(text='<object data={0}'.format(svg.decode('utf-8')))
         # for some reason div can handle incomplete tags, completing is has artifact.
     except:
         print('Could not get diagram, did you install graphviz and pydotplus??')
@@ -35,23 +35,24 @@ def bkapp(doc):
     doc.add_root(tabs)
     doc.title = 'Princeton U19 DataJoint Interface'
 
+
 def main():
     import sys
     from argparse import ArgumentParser
     parser = ArgumentParser(
         description='Princeton U19 DataJoint Interface')
-    parser.add_argument('-p','--port',
+    parser.add_argument('-p', '--port',
                         type=int,
                         default=5000,
                         help='port for the bokeh server',
                         action='store')
-    parser.add_argument('-n','--num-proc',
+    parser.add_argument('-n', '--num-proc',
                         type=int,
                         default=1,
                         help='number of processes for the bokeh server (zero is auto)',
                         action='store')
-    parser.add_argument('-b','--browser',
-                        default = False,
+    parser.add_argument('-b', '--browser',
+                        default=False,
                         action='store_true')
 
 
@@ -69,7 +70,9 @@ def main():
                                                   '0.0.0.0:{0}',
                                                   '{1}:{0},{2}:{0}',
                                                   '{1}.princeton.edu:{0}',
-                                                  'braincogs01.pni.princeton.edu']).format(
+                                                  'braincogs01.pni.princeton.edu',
+                                                  'braincogs01-test0.pni.princeton.edu',
+                                                  'braincogs01-test1.pni.princeton.edu']).format(
         port, hostname, ipaddress)
 
     server = Server({'/': bkapp},
@@ -83,6 +86,6 @@ def main():
         server.io_loop.add_callback(server.show,'/','')
     server.io_loop.start()
 
+
 if __name__ == '__main__':
     main()
-

@@ -5,19 +5,6 @@ from viewer.updatable_figures import *
 
 
 def subject_tab():
-    '''
-    Creates the tab to view all subjects
-    '''
-
-    all_subjects = (subject.Subject).fetch('subject_fullname').tolist()
-    subjects = Select(title='Subject:',value = 'All', options = ['All'] + all_subjects,
-                      width = 150)
-
-    all_owners = (dj.U('user_id') & subject.Subject).fetch('user_id').tolist()
-    owners = Select(title='Owner:',value = 'All', options = ['All'] + all_owners,
-                    width = 150)
-
-    current_filter = dict()
 
     def get_data_df(filter):
 
@@ -28,7 +15,21 @@ def subject_tab():
         df['dob'] = df['dob'].replace('NaT', 'Unknown')
         return df
 
+    all_subjects = (subject.Subject).fetch('subject_fullname').tolist()
+    subjects = Select(title='Subject:', value='All', options=['All'] + all_subjects,
+                      width=150)
+
+    all_owners = (dj.U('user_id') & subject.Subject).fetch('user_id').tolist()
+    owners = Select(title='Owner:', value='All', options=['All'] + all_owners,
+                    width=150)
+
+    levels = Select(title='Level', value='All', options=['All'], width=150)
+
+    current_filter = dict()
+
     source = ColumnDataSource(get_data_df(current_filter))
+    source.selected.indices = [5]
+    current_subject_fullname = source.data['subject_fullname'][5]
 
     # Table for displaying subjects
     columns = [
@@ -43,8 +44,35 @@ def subject_tab():
     figure_collection = UpdatableFigureCollectionFactory() \
         .add_figure_creator(water_weight.plot) \
         .add_figure_creator(performance_level.plot) \
-        .add_figure_creator(subject_psych_curve.plot) \
+        .add_figure_creator(subject_psych_curve.plot, dict(level='All')) \
         .build()
+
+    def update_level_filter(subj):
+
+        nonlocal levels
+        nonlocal figure_collection
+        task = (dj.U('task') & (acquisition.Session & dict(subject_fullname=subj))).fetch('task')[0]
+        if task == 'AirPuffs':
+            all_levels = list((dj.U('psych_level') &
+                               (puffs.PuffsSubjectCumulativePsychLevel &
+                                dict(subject_fullname=subj))).fetch('psych_level'))
+        elif task == 'Towers':
+            all_levels = list((dj.U('psych_level') &
+                               (behavior.TowersSubjectCumulativePsychLevel &
+                                dict(subject_fullname=subj))).fetch('psych_level'))
+        else:
+            all_levels = []
+
+        all_levels_str = [str(level) for level in all_levels]
+        levels_options = ['All'] + all_levels_str
+        levels_value = levels.value
+        if levels_value not in levels_options:
+            levels_value = 'All'
+        levels.options = levels_options
+        levels.value = 'All'
+
+        figure_collection.updatable_list[2][1] = dict(level=levels.value)
+        levels.value = levels_value
 
     def callback_filter(attr, old, new, field):
 
@@ -56,7 +84,8 @@ def subject_tab():
 
         source.data = get_data_df(current_filter)
         subjs = source.data['subject_fullname']
-        if len(subjs)==1:
+        if len(subjs) == 1:
+            source.selected.indices = [0]
             figure_collection.update(dict(subject_fullname=subjs[0]))
 
         if field == 'subject_fullname':
@@ -75,24 +104,32 @@ def subject_tab():
                 all_subjects = subject.Subject.fetch('subject_fullname').tolist()
                 subjects.options = ['All'] + all_subjects
 
+    def callback_level_filter(attr, old, new):
+
+        figure_collection.updatable_list[2][1] = dict(level=new)
+        figure_collection.updatable_list[2][0].update(
+            dict(subject_fullname=current_subject_fullname), dict(level=new))
+
     def callback_update_data(attr, old, new):
+        nonlocal current_subject_fullname
         try:
             selected_index = source.selected.indices[0]
-            subject_fullname = str(source.data['subject_fullname'][selected_index])
-            figure_collection.update(dict(subject_fullname=subject_fullname))
-
+            current_subject_fullname = str(source.data['subject_fullname'][selected_index])
+            update_level_filter(current_subject_fullname)
+            figure_collection.update(dict(subject_fullname=current_subject_fullname))
         except IndexError:
             pass
 
-
-
-    figure_collection.update(dict(subject_fullname=all_subjects[0]))
+    # callback functions
+    figure_collection.update(dict(subject_fullname=current_subject_fullname))
 
     source.selected.on_change('indices', callback_update_data)
 
     subjects.on_change('value', partial(callback_filter, field='subject_fullname'))
 
     owners.on_change('value', partial(callback_filter, field='user_id'))
+
+    levels.on_change('value', callback_level_filter)
 
     data_table = DataTable(
         source=source,
@@ -101,6 +138,7 @@ def subject_tab():
         height=800)
 
     return Panel(child=layout(row(column(row(owners, subjects), data_table),
-                                  column(figure_collection.updatable_list[0].fig,
-                                         figure_collection.updatable_list[1].fig,
-                                         figure_collection.updatable_list[2].fig))), title='Subject')
+                                  column(figure_collection.updatable_list[0][0].fig,
+                                         figure_collection.updatable_list[1][0].fig,
+                                         levels,
+                                         figure_collection.updatable_list[2][0].fig))), title='Subject')
