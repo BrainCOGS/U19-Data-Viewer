@@ -12,5 +12,5 @@ setup(
     license="GNU LGPL",
     keywords='database viewer',
     packages=find_packages(exclude=['contrib', 'docs', 'tests*']),
-    install_requires=['datajoint==0.12.9', 'bokeh']
+    install_requires=['datajoint==0.12.9', 'bokeh==2.2.3']
 )
