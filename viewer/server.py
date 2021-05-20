@@ -71,7 +71,8 @@ def main():
                                                   '{1}:{0},{2}:{0}',
                                                   '{1}.princeton.edu:{0}',
                                                   'braincogs01.pni.princeton.edu',
-						  'braincogs01-test0.pni.princeton.edu']).format(
+                                                  'braincogs01-test0.pni.princeton.edu',
+                                                  'braincogs01-test1.pni.princeton.edu']).format(
         port, hostname, ipaddress)
 
     server = Server({'/': bkapp},
@@ -84,6 +85,7 @@ def main():
     else:
         server.io_loop.add_callback(server.show,'/','')
     server.io_loop.start()
+
 
 if __name__ == '__main__':
     main()
