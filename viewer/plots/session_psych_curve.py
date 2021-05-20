@@ -10,6 +10,7 @@ default_data = {'x': [np.nan], 'y': [np.nan]}
 def plot(key=None, blocks_type=None):
 
     def create_query(key, blocks_type=None):
+        print(key)
         if (dj.U('task') & (acquisition.Session & key)).fetch1('task') == 'AirPuffs':
             return puffs.PuffsSessionPsych & key
         elif blocks_type:
