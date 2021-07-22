@@ -24,6 +24,7 @@ services:
       - "traefik.http.middlewares.${COMPOSE_PROJECT_NAME}-redirectscheme.redirectscheme.permanent=true"
       - "traefik.http.services.${COMPOSE_PROJECT_NAME}.loadbalancer.server.port=80"
       - "traefik.docker.network=proxy"
+    restart: unless-stopped
   flask-root:
     env_file:
       - .env
@@ -32,6 +33,7 @@ services:
       dockerfile: ./viewer/viewer.Dockerfile
     expose:
       - 5000
+    restart: unless-stopped
 
 
 networks:

@@ -16,9 +16,11 @@ from bokeh.models.widgets import (TextInput,
 from bokeh.models import (ColumnDataSource,
                           TableColumn,
                           DateFormatter,
-                          DataTable)
+                          DataTable,
+                          Label)
 from bokeh.models import LinearAxis, Range1d
 from bokeh.plotting import figure
 
 from bokeh.io import show, output_file
 from bokeh.plotting import curdoc
+from bokeh.models.formatters import DatetimeTickFormatter

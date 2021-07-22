@@ -8,8 +8,7 @@ def plot(key=None):
         water_info = (action.WaterAdministration & key).fetch(format='frame').reset_index()
         data_water = {'water_dates': water_info['administration_date'].to_list(),
                       'earned'     : water_info['earned'].to_list(),
-                      'supplement' : water_info['supplement'].to_list(),
-                      'received'   : water_info['received'].to_list()}
+                      'supplement' : water_info['supplement'].to_list()}
 
         return data_water
 
@@ -22,8 +21,8 @@ def plot(key=None):
         return data_weight
 
 
-    water_methods = ['earned', 'supplement', 'received']
-    colors = ["#c9d9d3", "#718dbf", "#e84d60"]
+    water_methods = ['earned', 'supplement']
+    colors = ["#c9d9d3", "#e84d60"]
 
     if key is None:
         key = dict(subject_fullname='emanuele_B208')
@@ -34,6 +33,9 @@ def plot(key=None):
     p = figure(x_axis_type="datetime", plot_width=600, plot_height=300, title='Water and Weight',
                x_axis_label='Date',
                y_axis_label='Water Intake [mL]')
+
+    p.xaxis.formatter = DatetimeTickFormatter(days='%m/%d/%y')
+
     p.y_range = Range1d(0, 5)
     water_plot = p.vbar_stack(
         water_methods, x='water_dates',

@@ -2,7 +2,7 @@ from viewer.utils import *
 from viewer.modules import subject, behavior
 
 
-def psych_curve(psych_data, psych_error, psych_fit, title):
+def psych_curve(psych_data, psych_error, psych_fit, title, label=None):
 
     p = figure(plot_width=550, plot_height=300,
                title=title,
@@ -20,9 +20,17 @@ def psych_curve(psych_data, psych_error, psych_fit, title):
     data_plot = p.scatter(x='x', y='y',
                           source=psych_data, color='black', legend_label='Data')
 
+    if label:
+        subject_label = Label(x_offset=-180, y_offset=200, text=label, text_font_size='9pt')
+        p.add_layout(subject_label)
+
     p.xgrid.grid_line_color = None
     p.outline_line_color = None
 
+
     p.legend.location = (330, 10)
 
-    return p, [data_plot, error_plot, fit_plot]
+    if label:
+        return p, [data_plot, error_plot, fit_plot, subject_label]
+    else:
+        return p, [data_plot, error_plot, fit_plot]

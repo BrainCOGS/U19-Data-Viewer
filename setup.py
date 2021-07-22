@@ -5,12 +5,12 @@ import sys
 
 setup(
     name='princeton-u19-data-viewer',
-    version='0.0.0',
+    version='0.0.1',
     description="Data Viewer for Princeton Data pipeline",
     author='Shan Shen',
     author_email='shanshen@vathes.com',
     license="GNU LGPL",
     keywords='database viewer',
     packages=find_packages(exclude=['contrib', 'docs', 'tests*']),
-    install_requires=['datajoint >= 0.12', 'bokeh']
+    install_requires=['datajoint==0.12.9', 'bokeh==2.2.3']
 )

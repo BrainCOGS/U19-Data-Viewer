@@ -1,4 +1,4 @@
-from viewer.modules import subject, acquisition, behavior
+from viewer.modules import subject, acquisition, behavior, puffs
 from viewer.utils import *
 
 
@@ -6,7 +6,11 @@ def plot(key=None):
 
     def get_data(key):
 
-        q = (acquisition.Session & key).proj(..., n_trials='num_trials')
+        task = (dj.U('task') & (acquisition.Session & key)).fetch1('task')
+        if task == 'AirPuffs':
+            q = (acquisition.Session & key).aggr(puffs.PuffsSession.Trial.proj(), n_trials='count(*)') * acquisition.Session
+        else:
+            q = (acquisition.Session & key).proj(..., n_trials='num_trials')
 
         if len(q):
             performance_info = q.fetch(
@@ -29,11 +33,20 @@ def plot(key=None):
     def update_view(p, subplot, data_performance):
 
         if subplot.y_range_name == 'default':
-            p.y_range = Range1d(
-                0, max([max(data_performance['level']), 10]), min_interval=2)
+            if np.isnan(data_performance['level'][0]):
+                p.y_range = Range1d(0, 10, min_interval=2)
+            else:
+                p.y_range = Range1d(
+                    0, max([max(data_performance['level']), 10]), min_interval=2)
+        elif subplot.y_range_name == 'performance':
+            p.extra_y_ranges[subplot.y_range_name] = Range1d(0, 100)
         else:
-            p.extra_y_ranges[subplot.y_range_name] = Range1d(
-                0, max([300, max(data_performance[subplot.y_range_name])]))
+            if np.isnan(data_performance[subplot.y_range_name][0]):
+                p.extra_y_ranges[subplot.y_range_name] = Range1d(
+                    0, 300)
+            else:
+                p.extra_y_ranges[subplot.y_range_name] = Range1d(
+                    0, max([300, max(data_performance[subplot.y_range_name])]))
 
     if key is None:
         key = dict(subject_fullname='emanuele_B208')
@@ -44,6 +57,8 @@ def plot(key=None):
                title='Performance, trial counts, and task level',
                x_axis_label='Date',
                y_axis_label='Task level', y_axis_location='right')
+
+    p.xaxis.formatter = DatetimeTickFormatter(days='%m/%d/%y')
 
     p.y_range = Range1d(0, max([max(data_performance['level']), 10]), min_interval=2)
     level_plot = p.vbar(
