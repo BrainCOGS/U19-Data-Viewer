@@ -5,25 +5,21 @@ from viewer.utils import *
 def plot(key=None):
 
     def get_water_data(key):
-        print("RUNS WATEER DATA")
+        print("RUNS WATER DATA")
         water_info = (action.WaterAdministration & key).fetch(format='frame').reset_index()
         data_water = pd.DataFrame({'water_dates': water_info['administration_date'],
                                    'earned'     : water_info['earned'],
                                    'supplement' : water_info['supplement']})
         data_water['water_dates'] = pd.to_datetime(data_water['water_dates'])
-        print('WITH NANS')
-        print(data_water)
-        data_water = data_water.dropna()
-        print('WITHOUT NANS')
-        print(data_water)
+        data_water = data_water.fillna(0)
         return data_water
 
     def get_weight_data(key):
         print("RUNS WEIGHT DATA")
         weight_info = (action.Weighing.proj('weight') &
                        key).fetch(format='frame').reset_index()
-        data_weight = pd.DataFrame({'weighing_dates': weight_info['weighing_time'].to_list(),
-                                    'weight'        : weight_info['weight'].to_list()})
+        data_weight = pd.DataFrame({'weighing_dates': weight_info['weighing_time'],
+                                    'weight'        : weight_info['weight']})
         data_weight['weighing_dates'] = pd.to_datetime(data_weight['weighing_dates'])
         return data_weight
 

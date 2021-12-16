@@ -52,3 +52,8 @@ Steps to deploy the test website from your user account:
     + `docker-compose down`
     + `docker-compose up`
     + Refresh the webpage to see your changes
+    (_The reason that you do not need to build the image again is because in the
+    `docker-compose.yml` file we mapped your currently working directory to the 
+    docker container directory (`.:/data_viewer`). So, everytime you make a 
+    change in your code, it will be reflected on the repository in the docker 
+    container_)
