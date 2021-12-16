@@ -5,7 +5,6 @@ from viewer.utils import *
 def plot(key=None):
 
     def get_water_data(key):
-        print("RUNS WATER DATA")
         water_info = (action.WaterAdministration & key).fetch(format='frame').reset_index()
         data_water = pd.DataFrame({'water_dates': water_info['administration_date'],
                                    'earned'     : water_info['earned'],
@@ -15,7 +14,6 @@ def plot(key=None):
         return data_water
 
     def get_weight_data(key):
-        print("RUNS WEIGHT DATA")
         weight_info = (action.Weighing.proj('weight') &
                        key).fetch(format='frame').reset_index()
         data_weight = pd.DataFrame({'weighing_dates': weight_info['weighing_time'],
