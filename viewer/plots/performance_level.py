@@ -65,7 +65,7 @@ def plot(key=None):
     level_plot = p.vbar(
         x='session_dates', top='level',
         source=data_performance, color='lightblue',
-        legend_label='Level', width=36000000)
+        legend_label='Level', width=datetime.timedelta(days=0.4))
 
     p.extra_y_ranges['performance'] = Range1d(0, 100)
     p.extra_y_ranges['n_trials'] = Range1d(0, max([300, max(data_performance['n_trials'])]))

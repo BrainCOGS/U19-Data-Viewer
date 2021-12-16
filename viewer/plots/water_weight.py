@@ -47,7 +47,7 @@ def plot(key=None):
     p.y_range = Range1d(0, 5)
 
     water_plot = p.vbar_stack(water_methods, x='water_dates',
-                              width=36000000,
+                              width=datetime.timedelta(days=0.4),
                               color=colors, source=data_water,
                               legend_label=water_methods)
     p.xgrid.grid_line_color = None
