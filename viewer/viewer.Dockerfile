@@ -4,6 +4,7 @@ COPY . /data_viewer
 WORKDIR /data_viewer
 RUN pip install --upgrade pip
 RUN pip install -e /data_viewer
+RUN pip install --upgrade bokeh
 EXPOSE 5000
 ENTRYPOINT [ "python" ]
 CMD [ "/data_viewer/viewer/server.py" ]
