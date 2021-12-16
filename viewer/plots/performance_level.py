@@ -16,11 +16,12 @@ def plot(key=None):
             performance_info = q.fetch(
                 format='frame').reset_index()
 
-            data_performance = {
+            data_performance = pd.DataFrame({
                 'session_dates': performance_info['session_date'].to_list(),
                 'performance'  : performance_info['session_performance'].to_list(),
                 'level'        : performance_info['level'],
-                'n_trials'     : performance_info['n_trials'].to_list()}
+                'n_trials'     : performance_info['n_trials'].to_list()})
+            data_performance['session_dates'] = pd.to_datetime(data_performance['session_dates'])
         else:
             data_performance = {
                 'session_dates': [np.nan],
@@ -64,7 +65,7 @@ def plot(key=None):
     level_plot = p.vbar(
         x='session_dates', top='level',
         source=data_performance, color='lightblue',
-        legend_label='Level', width=datetime.timedelta(days=0.4))
+        legend_label='Level', width=36000000)
 
     p.extra_y_ranges['performance'] = Range1d(0, 100)
     p.extra_y_ranges['n_trials'] = Range1d(0, max([300, max(data_performance['n_trials'])]))
