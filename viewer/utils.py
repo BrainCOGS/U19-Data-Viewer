@@ -19,8 +19,8 @@ from bokeh.models import (ColumnDataSource,
                           DataTable,
                           Label)
 from bokeh.models import LinearAxis, Range1d
-from bokeh.plotting import figure
+from bokeh.plotting import figure, show
 
-from bokeh.io import show, output_file
+from bokeh.io import output_file
 from bokeh.plotting import curdoc
 from bokeh.models.formatters import DatetimeTickFormatter
