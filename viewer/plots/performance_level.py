@@ -16,11 +16,12 @@ def plot(key=None):
             performance_info = q.fetch(
                 format='frame').reset_index()
 
-            data_performance = {
-                'session_dates': performance_info['session_date'].to_list(),
-                'performance'  : performance_info['session_performance'].to_list(),
+            data_performance = pd.DataFrame({
+                'session_dates': performance_info['session_date'],
+                'performance'  : performance_info['session_performance'],
                 'level'        : performance_info['level'],
-                'n_trials'     : performance_info['n_trials'].to_list()}
+                'n_trials'     : performance_info['n_trials']})
+            data_performance['session_dates'] = pd.to_datetime(data_performance['session_dates'])
         else:
             data_performance = {
                 'session_dates': [np.nan],
