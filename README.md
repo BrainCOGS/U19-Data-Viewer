@@ -1,43 +1,47 @@
-# U19-Data-Viewer
+## Developer instructions
 
-[For Developers]
+### Infrastructure
 
-The Data Viewer is currently hosted on `braincogs01.pni.princeton.edu`.
-There are two test hostnames (`braincogs01-test0.pni.princeton.edu`) available 
-for testing purposes before the final deployment is done on the original website. 
+- The `U19-Data-Viewer` is currently hosted at `braincogs01.pni.princeton.edu`.
 
-To be able to make changes to the webpage, one needs to have access to the
-`braincogs01.pni.princeton.edu` machine. Once the access is provided, you can
-login to the machine using the following command:
-`ssh <NETID>@braincogs01.pni.princeton.edu`
+- Additionally, there are two test hosts available.
+    - `braincogs01-test0.pni.princeton.edu`
+    - `braincogs01-test1.pni.princeton.edu`
 
-The website runs on pre-deployed docker containers which are running on Shan's 
-workstation. You will find the following containers when you run `docker ps` from
-your terminal.
-1. 'u19_data_viewer_test_flask-root'
-2. 'u19_data_viewer_test_apache'
-3. 'u19_data_viewer_flask-root'
-4. 'u19_data_viewer_apache'
-Here, `u19_data_viewer_flask-root` and `u19_data_viewer_apache` are running the
-main website, whereas `u19_data_viewer_test_flask-root` and `u19_data_viewer_test_apache`
-are hosting the test0 website.
+- The production and test websites are deployed on the `braincogs01.pni.princeton.edu` server.
 
-To make any changes to the website, we recommend to run the modifications on the
-test server. Once all changes are approved, changes can be deployed on the new website.
+- Obtain access to server by emailing `pnihelp@princeton.edu`.
 
-Steps to deploy the test website from your user account:
-1. git clone https://github.com/BrainCOGS/U19-Data-Viewer.git 
-   OR 
-   git clone https://github.com/vathes/U19-Data-Viewer.git
-2. Rename `.env.template` to `.env` file
-3. Enter one of the running Flask containers using the following command:
-    `docker exec -it <container_id> /bin/bash`
-4. To find all the .env values, run each of the following statements and paste 
-   the values in your .env file:
-    echo $SERVICEHOSTNAME
-    echo $CASLOGINURL
-    echo $CASVALIDATEURL
-5. Alternatively, you can copy paste the values from here:
+- The website runs on Docker containers that are deployed on the server.
+    - Production website
+        ```
+        u19_data_viewer_flask-root
+        u19_data_viewer_apache
+        ```
+    - `test0` website
+        ```
+        u19_data_viewer_test_flask-root
+        u19_data_viewer_test_apache
+        ```
+
+- We recommend making modifications on the test website first. Once all changes are tested and approved, these changes can be deployed on the production website.
+
+### Deploy the test website
+
+1. Connect to the `braincogs01.pni.princeton.edu` server.
+    ```
+    ssh <netID>@braincogs01.pni.princeton.edu
+    ```
+
+2. Clone the repository.
+    ```
+    git clone https://github.com/<BrainCOGS or vathes>/U19-Data-Viewer.git 
+    ```
+
+3. Rename the file `.env.template` to `.env`.
+
+4. Copy and modify the following values into the `.env` file.
+    ```
     SERVICEHOSTNAME=braincogs01-test0.pni.princeton.edu
     CASLOGINURL=https://fed.princeton.edu/cas/login
     CASVALIDATEURL=https://fed.princeton.edu/cas/serviceValidate
@@ -45,15 +49,29 @@ Steps to deploy the test website from your user account:
     DJ_HOST=datajoint00.pni.princeton.edu
     DJ_USER=<datajointusername>
     DJ_PASS=<datajointpassword>
-6. Run `docker-compose up -d --build` to build a new docker image
-7. Go to `braincogs01-test0.pni.princeton.edu` to see the website running.
-8. To be able to reflect changes to the website:
-    + Make changes to the code
-    + `docker-compose down`
-    + `docker-compose up`
-    + Refresh the webpage to see your changes
-    (_The reason that you do not need to build the image again is because in the
-    `docker-compose.yml` file we mapped your currently working directory to the 
-    docker container directory (`.:/data_viewer`). So, everytime you make a 
-    change in your code, it will be reflected on the repository in the docker 
-    container_)
+    ```
+
+5. Build the new Docker image and start the container.
+    ```
+    docker-compose up -d --build
+    ```
+
+6. View the deployed website in your browser at `braincogs01-test0.pni.princeton.edu`.
+
+### Modify the test website
+
+1. Make relevant changes to the code.
+
+2. Stop the container.
+    ```
+    docker-compose down
+    ```
+
+3. Start the container.
+    ```
+    docker-compose up
+    ```
+
+4. Refresh the webpage.
+
++ Note: The Docker image does not need to be rebuilt each time you modify the source code because the source code directory on the host machine is mounted to the Docker container (see the `docker-compose.yml` file's `volume` key).
