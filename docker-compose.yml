@@ -31,6 +31,8 @@ services:
     build:
       context: .
       dockerfile: ./viewer/viewer.Dockerfile
+    volumes:
+      - .:/data_viewer
     expose:
       - 5000
     restart: unless-stopped

@@ -7,10 +7,10 @@ setup(
     name='princeton-u19-data-viewer',
     version='0.0.1',
     description="Data Viewer for Princeton Data pipeline",
-    author='Shan Shen',
-    author_email='shanshen@vathes.com',
+    author='DataJoint',
+    author_email='info@datajoint.com',
     license="GNU LGPL",
     keywords='database viewer',
     packages=find_packages(exclude=['contrib', 'docs', 'tests*']),
-    install_requires=['datajoint==0.12.9', 'bokeh==2.2.3']
+    install_requires=['datajoint==0.12.9', 'bokeh==2.4.2']
 )
