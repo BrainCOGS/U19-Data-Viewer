@@ -47,6 +47,10 @@ def plot(key=None, plot_filter=None):
             data = {'x': np.squeeze(psych['subject_delta_error']).tolist(),
                     'y': np.squeeze(psych['subject_pright_error']).tolist()}
 
+        if data['x'] is None:
+            data = {'x': [0],
+                   'y': [0]}
+
         return data
 
     def get_psych_fit(key, plot_filter):
@@ -57,6 +61,11 @@ def plot(key=None, plot_filter=None):
             psych = q.fetch1()
             data = {'x': np.squeeze(psych['subject_delta_fit']).tolist(),
                     'y': np.squeeze(psych['subject_pright_fit']).tolist()}
+
+        if data['x'] is None:
+            data = {'x': [-1],
+                   'y': [-1]}
+
         return data
 
     def get_label(key, plot_filter):
