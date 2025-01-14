@@ -11,7 +11,7 @@ def subject_tab():
         df = pd.DataFrame((subject.Subject & filter).fetch(
             'subject_fullname', 'user_id', 'sex', 'dob', 'location', 'line',
             as_dict=True))
-        df['dob'] = pd.to_datetime(df['dob']).dt.strftime('%Y-%m-%d')
+        df['dob'] = pd.to_datetime(df['dob'], errors='coerce').dt.strftime('%Y-%m-%d')
         df['dob'] = df['dob'].replace('NaT', 'Unknown')
         return df
 
