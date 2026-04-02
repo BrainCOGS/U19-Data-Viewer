@@ -32,7 +32,7 @@ def plot(key=None):
     data_water = get_water_data(key)
     data_weight = get_weight_data(key)
 
-    p = figure(x_axis_type="datetime", plot_width=600, plot_height=300, title='Water and Weight',
+    p = figure(x_axis_type="datetime", width=600, height=300, title='Water and Weight',
                x_axis_label='Date',
                y_axis_label='Water Intake [mL]')
 

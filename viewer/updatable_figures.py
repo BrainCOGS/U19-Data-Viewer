@@ -26,7 +26,7 @@ class UpdatableFigure:
             else:
                 try:
                     subplot.data_source.data = new_data
-                except:
+                except AttributeError:
                     subplot.text = new_data
                 if update_view:
                     update_view(self.fig, subplot, new_data)

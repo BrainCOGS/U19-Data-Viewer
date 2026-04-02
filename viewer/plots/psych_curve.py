@@ -4,7 +4,7 @@ from viewer.modules import subject, behavior
 
 def psych_curve(psych_data, psych_error, psych_fit, title, label=None):
 
-    p = figure(plot_width=550, plot_height=300,
+    p = figure(width=550, height=300,
                title=title,
                x_axis_label='#R - #L',
                y_axis_label='% went R')
@@ -21,7 +21,7 @@ def psych_curve(psych_data, psych_error, psych_fit, title, label=None):
                           source=psych_data, color='black', legend_label='Data')
 
     if label:
-        subject_label = Label(x_offset=-180, y_offset=200, text=label, text_font_size='9pt')
+        subject_label = Label(x=0, y=0, x_offset=-180, y_offset=200, text=label, text_font_size='9pt')
         p.add_layout(subject_label)
 
     p.xgrid.grid_line_color = None

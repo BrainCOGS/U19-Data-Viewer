@@ -54,7 +54,7 @@ def plot(key=None):
 
     data_performance = get_data(key)
 
-    p = figure(x_axis_type="datetime", plot_width=600, plot_height=300,
+    p = figure(x_axis_type="datetime", width=600, height=300,
                title='Performance, trial counts, and task level',
                x_axis_label='Date',
                y_axis_label='Task level', y_axis_location='right')

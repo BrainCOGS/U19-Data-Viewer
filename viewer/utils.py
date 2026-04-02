@@ -6,18 +6,17 @@ from functools import partial
 
 
 from bokeh.layouts import row, layout, column
-from bokeh.models.widgets import (TextInput,
-                                  DatePicker,
-                                  RadioGroup,
-                                  Select,
-                                  Button,
-                                  Panel)
-
 from bokeh.models import (ColumnDataSource,
                           TableColumn,
                           DateFormatter,
                           DataTable,
-                          Label)
+                          Label,
+                          TabPanel as Panel,
+                          TextInput,
+                          DatePicker,
+                          RadioGroup,
+                          Select,
+                          Button)
 from bokeh.models import LinearAxis, Range1d
 from bokeh.plotting import figure, show
 

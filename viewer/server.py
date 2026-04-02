@@ -2,7 +2,7 @@ import pandas as pd
 import os
 from os.path import join as pjoin
 from bokeh.server.server import Server
-from bokeh.models.widgets import Tabs
+from bokeh.models import Tabs
 from subject_tab import subject_tab
 from session_tab import session_tab
 
@@ -12,7 +12,7 @@ import datajoint as dj
 def datajoint_dot():
     from bokeh.models import Div
     from bokeh.layouts import layout
-    from bokeh.models.widgets import Panel
+    from bokeh.models import TabPanel as Panel
 
     subject = dj.create_virtual_module('subject', 'u19_subject')
     action = dj.create_virtual_module('action', 'u19_action')
@@ -62,7 +62,10 @@ def main():
     browser = ops.browser
     import socket
     hostname = socket.gethostname()
-    ipaddress = socket.gethostbyname(hostname)
+    try:
+        ipaddress = socket.gethostbyname(hostname)
+    except socket.gaierror:
+        ipaddress = '127.0.0.1'
     os.environ['BOKEH_ALLOW_WS_ORIGIN']='localhost:{0},0.0.0.0:{0}'.format(
         port, hostname, ipaddress)
 

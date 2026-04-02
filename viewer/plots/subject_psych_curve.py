@@ -33,8 +33,8 @@ def plot(key=None, plot_filter=None):
         q = create_query(key, plot_filter)
         if len(q):
             psych = q.fetch1()
-            data = {'x': np.squeeze(psych['subject_delta_data']).tolist(),
-                    'y': np.squeeze(psych['subject_pright_data']).tolist()}
+            data = {'x': np.atleast_1d(np.squeeze(psych['subject_delta_data'])).tolist(),
+                    'y': np.atleast_1d(np.squeeze(psych['subject_pright_data'])).tolist()}
 
         return data
 
@@ -44,8 +44,8 @@ def plot(key=None, plot_filter=None):
         q = create_query(key, plot_filter)
         if len(q):
             psych = q.fetch1()
-            data = {'x': np.squeeze(psych['subject_delta_error']).tolist(),
-                    'y': np.squeeze(psych['subject_pright_error']).tolist()}
+            data = {'x': np.atleast_1d(np.squeeze(psych['subject_delta_error'])).tolist(),
+                    'y': np.atleast_1d(np.squeeze(psych['subject_pright_error'])).tolist()}
 
         if data['x'] is None:
             data = {'x': [0],
@@ -59,8 +59,8 @@ def plot(key=None, plot_filter=None):
         q = create_query(key, plot_filter)
         if len(q):
             psych = q.fetch1()
-            data = {'x': np.squeeze(psych['subject_delta_fit']).tolist(),
-                    'y': np.squeeze(psych['subject_pright_fit']).tolist()}
+            data = {'x': np.atleast_1d(np.squeeze(psych['subject_delta_fit'])).tolist(),
+                    'y': np.atleast_1d(np.squeeze(psych['subject_pright_fit'])).tolist()}
 
         if data['x'] is None:
             data = {'x': [-1],

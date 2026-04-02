@@ -1,4 +1,4 @@
-FROM python:3.7.6-slim-buster
+FROM python:3-bookworm
 RUN apt-get update && apt-get install -y openssh-server graphviz
 COPY . /data_viewer
 WORKDIR /data_viewer
