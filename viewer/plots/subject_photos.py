@@ -22,34 +22,64 @@ def _placeholder_image(width=160, height=120):
     return np.ascontiguousarray(np.where(pattern, 235, 215).astype(np.uint8))
 
 
+def _no_image():
+    '''Empty columns, for the glyph that is not showing this image.'''
+    return {'image': [], 'x': [], 'y': [], 'dw': [], 'dh': [],
+            'real': [], 'color': []}
+
+
 def _empty_image():
     image = _placeholder_image()
     height, width = image.shape
     # 'real' distinguishes a stand-in from an actual capture; it rides along in
     # the data source so update_view can label the panel correctly.
     return {'image': [image], 'x': [0], 'y': [0],
-            'dw': [width], 'dh': [height], 'real': [False]}
+            'dw': [width], 'dh': [height], 'real': [False], 'color': [False]}
+
+
+def _to_rgba(image):
+    '''
+    Pack an (h, w, 3 or 4) array into the uint32 view bokeh's image_rgba wants.
+    '''
+    height, width = image.shape[:2]
+    rgba = np.empty((height, width, 4), dtype=np.uint8)
+    rgba[:, :, :3] = image[:, :, :3]
+    if image.shape[2] == 4:
+        rgba[:, :, 3] = image[:, :, 3]
+    else:
+        rgba[:, :, 3] = 255
+    return rgba.view(np.uint32).reshape(height, width)
 
 
 def _as_image_data(raw):
     '''
-    Normalize a stored image blob into a 2-D array Bokeh can render.
-    Color images are averaged to grayscale; anything unusable yields None.
+    Normalize a stored image blob into an array bokeh can render, returning
+    (array, is_color). Color images are packed as RGBA rather than averaged to
+    grey, so nothing is thrown away. Anything unusable yields (None, False).
     '''
     if raw is None:
-        return None
+        return None, False
 
     image = np.asarray(raw)
-    if image.ndim == 3:
-        image = image.mean(axis=2)
-    if image.ndim != 2 or not image.size:
-        return None
+    is_color = image.ndim == 3 and image.shape[2] in (3, 4)
 
-    # Bokeh draws images bottom-up; flip so they appear the right way round.
-    # np.flipud returns a reversed *view*, and Bokeh serializes the underlying
+    if not is_color and image.ndim != 2:
+        return None, False
+    if not image.size:
+        return None, False
+
+    # Bokeh draws images bottom-up, so flip vertically to put them the right way
+    # up; flip horizontally as well to match the orientation of the rig cameras.
+    image = image[::-1, ::-1]
+
+    if is_color:
+        # view() needs a contiguous buffer, so materialize the flip first.
+        return _to_rgba(np.ascontiguousarray(image, dtype=np.uint8)), True
+
+    # np.flip returns a reversed *view*, and bokeh serializes the underlying
     # buffer, so a non-contiguous array reaches the browser as garbage. Force a
     # C-contiguous copy. uint8 keeps it a quarter of the bytes of float64.
-    return np.ascontiguousarray(np.flipud(image), dtype=np.uint8)
+    return np.ascontiguousarray(image, dtype=np.uint8), False
 
 
 def plot(key=None, plot_filter=None, panel_width=390, panel_height=280):
@@ -94,17 +124,18 @@ def plot(key=None, plot_filter=None, panel_width=390, panel_height=280):
             if position >= len(captures):
                 return _empty_image()
 
-            image = _as_image_data(captures[position][column])
+            image, is_color = _as_image_data(captures[position][column])
             if image is None:
                 return _empty_image()
 
             height, width = image.shape
             return {'image': [image], 'x': [0], 'y': [0],
-                    'dw': [width], 'dh': [height], 'real': [True]}
+                    'dw': [width], 'dh': [height], 'real': [True],
+                    'color': [is_color]}
 
         return get_data
 
-    def make_update_view(image_figure, placeholder):
+    def make_update_view(image_figure, placeholder, grey_glyph, rgba_glyph):
         # UpdatableFigure hands update_view the collection's top-level figure,
         # which here is the enclosing grid, so close over the real target.
 
@@ -112,6 +143,19 @@ def plot(key=None, plot_filter=None, panel_width=390, panel_height=280):
             placeholder.visible = not any(data.get('real') or [False])
             if not len(data['dw']):
                 return
+
+            # A renderer cannot change glyph type once built, so both are
+            # present and only the one matching this image is shown. The other
+            # is emptied: a uint32 RGBA buffer drawn by the palette glyph (or
+            # vice versa) would render as noise.
+            is_color = bool((data.get('color') or [False])[0])
+            shown, hidden = ((rgba_glyph, grey_glyph) if is_color
+                             else (grey_glyph, rgba_glyph))
+            shown.visible = True
+            hidden.visible = False
+            hidden.data_source.data = _no_image()
+            shown.data_source.data = data
+
             # Keep the frame matched to the image so it is not letterboxed.
             image_figure.x_range.start, image_figure.x_range.end = 0, data['dw'][0]
             image_figure.y_range.start, image_figure.y_range.end = 0, data['dh'][0]
@@ -152,15 +196,32 @@ def plot(key=None, plot_filter=None, panel_width=390, panel_height=280):
 
             placeholder.visible = not any(data.get('real') or [False])
 
+            is_color = bool((data.get('color') or [False])[0])
+
+            # Both glyphs exist up front and update_view shows whichever suits
+            # the current image; a renderer's glyph type is fixed once built.
+            #
             # Pin the mapper to the full 8-bit range. Left to infer its own
             # bounds it rescales per image, which changes apparent brightness
             # between captures and washes out low-contrast frames.
-            glyph = p.image(image='image', x='x', y='y', dw='dw', dh='dh',
-                            color_mapper=LinearColorMapper(palette='Greys256',
-                                                           low=0, high=255),
-                            source=data)
+            grey_glyph = p.image(
+                image='image', x='x', y='y', dw='dw', dh='dh',
+                color_mapper=LinearColorMapper(palette='Greys256',
+                                               low=0, high=255),
+                source=_no_image() if is_color else data)
+            rgba_glyph = p.image_rgba(
+                image='image', x='x', y='y', dw='dw', dh='dh',
+                source=data if is_color else _no_image())
 
-            subplots.append((glyph, get_data, make_update_view(p, placeholder)))
+            grey_glyph.visible = not is_color
+            rgba_glyph.visible = is_color
+
+            # Register the glyph that UpdatableFigure writes to; update_view
+            # then routes the data to whichever glyph should display it.
+            subplots.append((grey_glyph if not is_color else rgba_glyph,
+                             get_data,
+                             make_update_view(p, placeholder,
+                                              grey_glyph, rgba_glyph)))
             figures.append(p)
 
     # Plain nested row/column rather than gridplot: a gridplot nested inside
