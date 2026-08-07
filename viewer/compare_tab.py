@@ -3,6 +3,7 @@ from viewer.modules import subject
 from viewer.plots import (water_weight, performance_level, motor_coordinates,
                           subject_photos)
 from viewer.updatable_figures import *
+from viewer.busy_indicator import BusyIndicator
 
 
 def _subject_panel(all_subjects, default_subject, label):
@@ -15,13 +16,17 @@ def _subject_panel(all_subjects, default_subject, label):
     subjects = Select(title='{} subject:'.format(label), value=default_subject,
                       options=all_subjects, width=260)
 
+    busy = BusyIndicator(width=260)
+
     figure_collection = UpdatableFigureCollectionFactory() \
         .add_figure_creator(performance_level.plot) \
         .add_figure_creator(motor_coordinates.plot) \
         .add_figure_creator(water_weight.plot) \
         .build()
 
-    photos_grid, photos_subplots = subject_photos.plot()
+    # Narrower panels here: two of these columns sit side by side.
+    photos_grid, photos_subplots = subject_photos.plot(
+        panel_width=290, panel_height=210)
     photos_figure = UpdatableFigure(photos_grid, photos_subplots)
 
     def refresh(subject_fullname):
@@ -30,7 +35,8 @@ def _subject_panel(all_subjects, default_subject, label):
         photos_figure.update(key)
 
     def callback_subject(attr, old, new):
-        refresh(new)
+        busy.run_busy(lambda: refresh(new),
+                      'Loading {}…'.format(new))
 
     subjects.on_change('value', callback_subject)
 
@@ -38,6 +44,7 @@ def _subject_panel(all_subjects, default_subject, label):
         refresh(default_subject)
 
     panel = column(subjects,
+                   busy.div,
                    *[fig.fig for (fig, _) in figure_collection.updatable_list],
                    photos_grid)
 

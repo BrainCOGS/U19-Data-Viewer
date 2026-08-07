@@ -3,6 +3,7 @@ from viewer.modules import *
 from viewer.plots import (water_weight, performance_level, subject_psych_curve,
                           motor_coordinates, subject_photos)
 from viewer.updatable_figures import *
+from viewer.busy_indicator import BusyIndicator
 
 
 def subject_tab():
@@ -40,6 +41,8 @@ def subject_tab():
                   width=150)
 
     levels = Select(title='Level', value='All', options=['All'], width=150)
+
+    busy = BusyIndicator()
 
     current_filter = dict()
 
@@ -109,6 +112,10 @@ def subject_tab():
         levels.value = levels_value
 
     def callback_filter(attr, old, new, field):
+        busy.run_busy(lambda: callback_filter_impl(new, field),
+                      'Filtering subjects…')
+
+    def callback_filter_impl(new, field):
 
         if field in current_filter.keys():
             current_filter.pop(field)
@@ -126,7 +133,8 @@ def subject_tab():
             else:
                 index = 0
             source.selected.indices = [index]
-            callback_update_data(None, None, None)
+            # Already inside a busy block; go straight to the work.
+            update_selected_subject()
         else:
             source.selected.indices = []
 
@@ -147,6 +155,10 @@ def subject_tab():
                 subjects.options = ['All'] + all_subjects
 
     def callback_level_filter(attr, old, new):
+        busy.run_busy(lambda: callback_level_filter_impl(new),
+                      'Loading psychometric curve…')
+
+    def callback_level_filter_impl(new):
 
         figure_collection.updatable_list[psych_index][1] = dict(level=new)
         if current_subject_fullname is None:
@@ -154,7 +166,7 @@ def subject_tab():
         figure_collection.updatable_list[psych_index][0].update(
             dict(subject_fullname=current_subject_fullname), dict(level=new))
 
-    def callback_update_data(attr, old, new):
+    def update_selected_subject():
         nonlocal current_subject_fullname
         try:
             selected_index = source.selected.indices[0]
@@ -164,6 +176,9 @@ def subject_tab():
             photos_figure.update(dict(subject_fullname=current_subject_fullname))
         except IndexError:
             pass
+
+    def callback_update_data(attr, old, new):
+        busy.run_busy(update_selected_subject, 'Loading subject data…')
 
     # callback functions
     if current_subject_fullname is not None:
@@ -187,11 +202,19 @@ def subject_tab():
         source=source,
         columns=columns,
         width=800,
-        height=520)
+        # Kept short enough that the photo panels below stay on screen without
+        # scrolling; the table scrolls internally.
+        height=360)
 
     return Panel(child=layout(row(column(row(owners, subjects),
                                          row(sexes, rigs),
+                                         busy.div,
                                          data_table,
+                                         # Photos go under the table, in space
+                                         # the left column already has. Putting
+                                         # them beside a plot pushed the page
+                                         # past the width of a typical window.
+                                         Div(text='<b>Latest position captures</b>'),
                                          photos_figure.fig),
                                   column(figure_collection.updatable_list[water_index][0].fig,
                                          figure_collection.updatable_list[performance_index][0].fig,
