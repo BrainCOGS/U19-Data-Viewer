@@ -5,6 +5,7 @@ from bokeh.server.server import Server
 from bokeh.models import Tabs
 from subject_tab import subject_tab
 from session_tab import session_tab
+from viewer.compare_tab import compare_tab
 
 import datajoint as dj
 
@@ -30,7 +31,8 @@ def datajoint_dot():
 
 def bkapp(doc):
 
-    tabs = Tabs(tabs=[datajoint_dot(), subject_tab(), session_tab()], active=1)
+    tabs = Tabs(tabs=[datajoint_dot(), subject_tab(), session_tab(),
+                      compare_tab()], active=1)
 
     doc.add_root(tabs)
     doc.title = 'Princeton U19 DataJoint Interface'
