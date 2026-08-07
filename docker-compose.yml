@@ -33,8 +33,21 @@ services:
       dockerfile: ./viewer/viewer.Dockerfile
     volumes:
       - .:/data_viewer
+      # Subject photos live in the 'dailyposition' external blob store (see the
+      # "stores" key in dj_local_conf.json). Without this mount the photo
+      # panels degrade to "No image".
+      - /Volumes/u19_dj:/Volumes/u19_dj:ro
     expose:
       - 5000
+    ports:
+      # Local development: reach the bokeh server directly at
+      # http://localhost:5001/ without going through apache/traefik.
+      # Host port 5001 because macOS AirPlay Receiver occupies 5000.
+      - "5001:5000"
+    environment:
+      # The browser's Origin carries the host port (5001), but the server only
+      # knows the port it listens on (5000), so allow the published one too.
+      - EXTRA_WS_ORIGINS=localhost:5001,127.0.0.1:5001
     restart: unless-stopped
 
 
