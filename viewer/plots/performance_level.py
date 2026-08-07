@@ -4,10 +4,21 @@ from viewer.utils import *
 
 def plot(key=None):
 
+    no_data = {
+        'session_dates': [np.nan],
+        'performance'  : [np.nan],
+        'level'        : [np.nan],
+        'n_trials'     : [np.nan]}
+
     def get_data(key):
 
-        task = (dj.U('task') & (acquisition.Session & key)).fetch1('task')
-        if task == 'AirPuffs':
+        # A subject may have no sessions at all, or sessions across more than
+        # one task, so take the tasks as a set rather than assuming exactly one.
+        tasks = (dj.U('task') & (acquisition.Session & key)).fetch('task')
+        if not len(tasks):
+            return dict(no_data)
+
+        if 'AirPuffs' in tasks:
             q = (acquisition.Session & key).aggr(puffs.PuffsSession.Trial.proj(), n_trials='count(*)') * acquisition.Session
         else:
             q = (acquisition.Session & key).proj(..., n_trials='num_trials')
@@ -23,11 +34,7 @@ def plot(key=None):
                 'n_trials'     : performance_info['n_trials']})
             data_performance['session_dates'] = pd.to_datetime(data_performance['session_dates'])
         else:
-            data_performance = {
-                'session_dates': [np.nan],
-                'performance'  : [np.nan],
-                'level'        : [np.nan],
-                'n_trials'     : [np.nan]}
+            data_performance = dict(no_data)
 
         return data_performance
 
