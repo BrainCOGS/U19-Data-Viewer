@@ -12,11 +12,22 @@ class UpdatableFigure:
 
     def update(self, key, plot_filter=None):
 
+        # Several subplots of a figure usually share one get_data (a line and
+        # its markers, say), and each call is a round trip to the database.
+        # Memoize per update so a shared getter is fetched once, not once per
+        # glyph. Scoped to this call: the next update re-queries as before.
+        fetched = {}
+
+        def fetch(get_data):
+            if get_data not in fetched:
+                if plot_filter:
+                    fetched[get_data] = get_data(key, plot_filter)
+                else:
+                    fetched[get_data] = get_data(key)
+            return fetched[get_data]
+
         for (subplot, get_data, update_view) in self.subplots:
-            if plot_filter:
-                new_data = get_data(key, plot_filter)
-            else:
-                new_data = get_data(key)
+            new_data = fetch(get_data)
 
             if type(subplot) == list:
                 for sp in subplot:
