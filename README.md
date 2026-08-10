@@ -1,5 +1,25 @@
 ## Developer instructions
 
+### Local development
+
+Dependencies are managed with [uv](https://docs.astral.sh/uv/) and pinned in `uv.lock`.
+
+1. Install `uv` (see the [installation docs](https://docs.astral.sh/uv/getting-started/installation/)).
+
+2. Create the virtual environment and install the project and its dependencies.
+    ```
+    uv sync
+    ```
+
+3. Run the server.
+    ```
+    uv run viewer/server.py
+    ```
+
++ Note: `uv run` syncs the environment first, so there is no virtual environment to activate manually.
+
+To change dependencies, edit the `dependencies` list in `pyproject.toml` and run `uv lock` to refresh `uv.lock`. Commit both files — the Docker build installs with `uv sync --locked`, which fails if the lockfile is out of date.
+
 ### Infrastructure
 
 - The `U19-Data-Viewer` is currently hosted at `braincogs01.pni.princeton.edu`.
