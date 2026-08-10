@@ -289,7 +289,13 @@ def subject_tab():
             lines.push(fields.map((f) => cell((data[f] || [])[i])).join(','));
         }
 
-        const stamp = new Date().toISOString().slice(0, 10);
+        // Runs in the browser, so this is already the viewer's local clock and
+        // zone. Swedish locale formats as YYYY-MM-DD HH:MM:SS; the colons are
+        // swapped out because a colon is not a legal filename character
+        // everywhere.
+        const stamp = new Date().toLocaleString('sv-SE')
+                          .replace(' ', '_').replace(/:/g, '-');
+
         const blob = new Blob([lines.join('\\n')], {type: 'text/csv;charset=utf-8;'});
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
