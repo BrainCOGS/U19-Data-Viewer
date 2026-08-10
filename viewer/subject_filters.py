@@ -15,6 +15,11 @@ from viewer.utils import *
 # being in valhalla and 69 are in valhalla without one, so both are checked.
 GRAVE_LOCATIONS = ['valhalla']
 
+# Accounts whose subjects are test fixtures rather than real animals. They are
+# 205 of the 466 living subjects, so leaving them in means nearly half the
+# default view is noise.
+TEST_USERS = ['testuser']
+
 
 def dead_subject_names():
     '''
@@ -40,17 +45,31 @@ def dead_subject_names():
     return set(by_status) | set(by_location)
 
 
+def real_subjects():
+    '''subject.Subject without the test accounts' fixtures.'''
+    if not TEST_USERS:
+        return subject.Subject
+    excluded = ' OR '.join('user_id="{}"'.format(user) for user in TEST_USERS)
+    return subject.Subject & 'NOT ({})'.format(excluded)
+
+
 def living_subjects():
-    '''Restriction selecting subjects that are neither dead nor in a grave.'''
+    '''
+    Subjects that are neither dead, in a grave, nor owned by a test account.
+    This is what the viewer shows by default.
+    '''
     dead = dead_subject_names()
     if not dead:
-        return subject.Subject
-    return subject.Subject - [dict(subject_fullname=name) for name in dead]
+        return real_subjects()
+    return real_subjects() - [dict(subject_fullname=name) for name in dead]
 
 
 def subject_source(include_dead=False):
-    '''The subject table to filter against, honouring the alive default.'''
-    return subject.Subject if include_dead else living_subjects()
+    '''
+    The subject table to filter against. Test fixtures are always excluded;
+    include_dead only relaxes the dead/grave test.
+    '''
+    return real_subjects() if include_dead else living_subjects()
 
 
 def rigs_of(subject_fullname):
