@@ -260,8 +260,10 @@ def subject_tab():
         # scrolling; the table scrolls internally.
         height=360)
 
-    return Panel(child=layout(row(column(row(owners, subjects),
-                                         row(sexes, rigs),
+    # Order matches the compare tab: owner, rig, sex, subject, then the
+    # include-dead checkbox.
+    return Panel(child=layout(row(column(row(owners, rigs),
+                                         row(sexes, subjects),
                                          include_dead,
                                          busy.div,
                                          data_table,

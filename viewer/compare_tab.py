@@ -100,11 +100,11 @@ def _subject_panel(default_subject, label, owners, rigs):
     if subjects.value and not subjects.value.startswith('('):
         refresh(subjects.value)
 
-    # Same grouping as the subject tab -- (owner, subject), (sex, rig), then the
+    # Same grouping as the subject tab -- owner, rig, sex, subject, then the
     # dead checkbox -- so the two pages read the same way.
     panel = column(Div(text='<b>{}</b>'.format(label), width=FULL),
-                   row(owner_select, subjects),
-                   row(sex_select, rig_select),
+                   row(owner_select, rig_select),
+                   row(sex_select, subjects),
                    dead_check,
                    busy.div,
                    *[fig.fig for (fig, _) in figure_collection.updatable_list],
