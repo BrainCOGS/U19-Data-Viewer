@@ -1,0 +1,15 @@
+# The venv is platform-specific; never copy the host's into the image.
+.venv
+
+.git
+.gitignore
+
+*.egg-info/
+__pycache__/
+*.py[cod]
+
+# Local secrets and config, supplied at runtime via env_file instead.
+.env
+dj_local_conf.json
+
+.vscode/
