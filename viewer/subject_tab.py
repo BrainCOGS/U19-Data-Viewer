@@ -4,6 +4,7 @@ from viewer.plots import (water_weight, performance_level, subject_psych_curve,
                           motor_coordinates, subject_photos)
 from viewer.updatable_figures import *
 from viewer.busy_indicator import BusyIndicator
+from viewer import subject_filters
 
 
 def subject_tab():
@@ -11,9 +12,20 @@ def subject_tab():
     table_columns = ['subject_fullname', 'user_id', 'sex', 'dob', 'location',
                      'line']
 
+    # Training rig is not a column on subject.Subject, so it restricts through
+    # sessions rather than sitting in the plain field filter.
+    current_rig = dict(value='All')
+    show_dead = dict(value=False)
+
+    def subject_query(filter):
+        query = subject_filters.subject_source(show_dead['value']) & filter
+        if current_rig['value'] != 'All':
+            query = query & subject_filters.subjects_on_rig(current_rig['value'])
+        return query
+
     def get_data_df(filter):
 
-        df = pd.DataFrame((subject.Subject & filter).fetch(
+        df = pd.DataFrame(subject_query(filter).fetch(
             *table_columns, as_dict=True))
         if not len(df):
             # A filter combination can match nothing; keep the columns so the
@@ -23,11 +35,12 @@ def subject_tab():
         df['dob'] = df['dob'].replace('NaT', 'Unknown')
         return df
 
-    all_subjects = (subject.Subject).fetch('subject_fullname').tolist()
+    all_subjects = subject_query({}).fetch('subject_fullname').tolist()
     subjects = Select(title='Subject:', value='All', options=['All'] + all_subjects,
                       width=150)
 
-    all_owners = (dj.U('user_id') & subject.Subject).fetch('user_id').tolist()
+    all_owners = (dj.U('user_id') & subject_filters.living_subjects()).fetch(
+        'user_id').tolist()
     owners = Select(title='Owner:', value='All', options=['All'] + all_owners,
                     width=150)
 
@@ -36,9 +49,12 @@ def subject_tab():
     sexes = Select(title='Sex:', value='All', options=['All'] + all_sexes,
                    width=150)
 
-    all_rigs = (dj.U('location') & subject.Subject).fetch('location').tolist()
-    rigs = Select(title='Training rig:', value='All', options=['All'] + all_rigs,
-                  width=150)
+    rigs = Select(title='Training rig:', value='All',
+                  options=['All'] + subject_filters.all_rigs(), width=150)
+
+    # Most subjects in the database are dead, so they are hidden by default.
+    include_dead = CheckboxGroup(labels=['Include dead subjects'], active=[],
+                                 width=200)
 
     levels = Select(title='Level', value='All', options=['All'], width=150)
 
@@ -115,6 +131,37 @@ def subject_tab():
         busy.run_busy(lambda: callback_filter_impl(new, field),
                       'Filtering subjects…')
 
+    def callback_rig(attr, old, new):
+        def apply():
+            current_rig['value'] = new
+            refresh_table()
+            # Keep the subject list in step with the rig.
+            subjects.options = ['All'] + subject_query({}).fetch(
+                'subject_fullname').tolist()
+        busy.run_busy(apply, 'Filtering by rig…')
+
+    def callback_include_dead(attr, old, new):
+        def apply():
+            show_dead['value'] = bool(new)
+            refresh_table()
+            subjects.options = ['All'] + subject_query({}).fetch(
+                'subject_fullname').tolist()
+        busy.run_busy(apply, 'Reloading subjects…')
+
+    def refresh_table():
+        '''Re-read the table under the current filters and keep a row selected.'''
+        source.data = get_data_df(current_filter)
+        subjs = source.data['subject_fullname']
+        if len(subjs):
+            if current_subject_fullname in list(subjs):
+                index = list(subjs).index(current_subject_fullname)
+            else:
+                index = 0
+            source.selected.indices = [index]
+            update_selected_subject()
+        else:
+            source.selected.indices = []
+
     def callback_filter_impl(new, field):
 
         if field in current_filter.keys():
@@ -138,20 +185,25 @@ def subject_tab():
         else:
             source.selected.indices = []
 
+        # The companion dropdowns follow the same alive/rig scope as the table.
         if field == 'subject_fullname':
             if new != 'All':
-                owner = (subject.Subject & 'subject_fullname="{}"'.format(new)).fetch('user_id').tolist()
+                owner = subject_query(
+                    dict(subject_fullname=new)).fetch('user_id').tolist()
                 owners.options = ['All'] + owner
             else:
-                all_owners = (dj.U('user_id') & subject.Subject).fetch('user_id').tolist()
+                all_owners = (dj.U('user_id') & subject_query({})).fetch(
+                    'user_id').tolist()
                 owners.options = ['All'] + all_owners
 
         if field == 'user_id':
             if new != 'All':
-                all_subjects = (subject.Subject & 'user_id="{}"'.format(new)).fetch('subject_fullname').tolist()
+                all_subjects = subject_query(
+                    dict(user_id=new)).fetch('subject_fullname').tolist()
                 subjects.options = ['All'] + all_subjects
             else:
-                all_subjects = subject.Subject.fetch('subject_fullname').tolist()
+                all_subjects = subject_query({}).fetch(
+                    'subject_fullname').tolist()
                 subjects.options = ['All'] + all_subjects
 
     def callback_level_filter(attr, old, new):
@@ -194,7 +246,9 @@ def subject_tab():
 
     sexes.on_change('value', partial(callback_filter, field='sex'))
 
-    rigs.on_change('value', partial(callback_filter, field='location'))
+    rigs.on_change('value', callback_rig)
+
+    include_dead.on_change('active', callback_include_dead)
 
     levels.on_change('value', callback_level_filter)
 
@@ -208,6 +262,7 @@ def subject_tab():
 
     return Panel(child=layout(row(column(row(owners, subjects),
                                          row(sexes, rigs),
+                                         include_dead,
                                          busy.div,
                                          data_table,
                                          # Photos go under the table, in space

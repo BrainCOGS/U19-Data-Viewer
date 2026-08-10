@@ -17,6 +17,7 @@ from bokeh.models import (ColumnDataSource,
                           DatePicker,
                           RadioGroup,
                           Select,
+                          CheckboxGroup,
                           Button)
 from bokeh.models import LinearAxis, Range1d
 from bokeh.plotting import figure, show
