@@ -23,16 +23,26 @@ def subject_tab():
             query = query & subject_filters.subjects_on_rig(current_rig['value'])
         return query
 
+    # 'rig' is derived from sessions rather than fetched, so it is listed
+    # separately from the columns that come off subject.Subject.
+    display_columns = table_columns + ['rig']
+
     def get_data_df(filter):
 
-        df = pd.DataFrame(subject_query(filter).fetch(
-            *table_columns, as_dict=True))
+        query = subject_query(filter)
+        df = pd.DataFrame(query.fetch(*table_columns, as_dict=True))
         if not len(df):
             # A filter combination can match nothing; keep the columns so the
             # table and its callbacks still have something well-formed to read.
-            return pd.DataFrame({column: [] for column in table_columns})
+            return pd.DataFrame({column: [] for column in display_columns})
         df['dob'] = pd.to_datetime(df['dob'], errors='coerce').dt.strftime('%Y-%m-%d')
         df['dob'] = df['dob'].replace('NaT', 'Unknown')
+
+        # One grouped query for every visible subject, not one per row. Most
+        # subjects train on a single rig; the rest are listed most-used first.
+        rigs = subject_filters.rigs_by_subject(query.proj())
+        df['rig'] = [', '.join(rigs.get(name, [])) or 'None'
+                     for name in df['subject_fullname']]
         return df
 
     all_subjects = subject_query({}).fetch('subject_fullname').tolist()
@@ -56,6 +66,9 @@ def subject_tab():
     include_dead = CheckboxGroup(labels=['Include dead subjects'], active=[],
                                  width=200)
 
+    download = Button(label='Download table (CSV)', button_type='primary',
+                      width=200)
+
     levels = Select(title='Level', value='All', options=['All'], width=150)
 
     busy = BusyIndicator()
@@ -76,6 +89,7 @@ def subject_tab():
         TableColumn(field="sex", title="Gender"),
         TableColumn(field="user_id", title="Owner"),
         TableColumn(field="location", title="Location"),
+        TableColumn(field="rig", title="Training rig"),
         TableColumn(field="line", title="Line")
     ]
 
@@ -252,6 +266,38 @@ def subject_tab():
 
     levels.on_change('value', callback_level_filter)
 
+    # The download has to happen in the browser: a bokeh server callback cannot
+    # hand the client a file. The data is already in the ColumnDataSource, so
+    # the CSV is built from that and saved through a temporary blob URL.
+    download.js_on_click(CustomJS(
+        args=dict(source=source,
+                  fields=[c.field for c in columns],
+                  headers=[c.title for c in columns]),
+        code='''
+        const data = source.data;
+        const n = (data[fields[0]] || []).length;
+
+        // Quote every field and double any embedded quotes: the rig column
+        // holds a comma-separated list when a subject moved between rigs.
+        const cell = (value) => {
+            const text = (value === null || value === undefined) ? '' : String(value);
+            return '"' + text.replace(/"/g, '""') + '"';
+        };
+
+        const lines = [headers.map(cell).join(',')];
+        for (let i = 0; i < n; i++) {
+            lines.push(fields.map((f) => cell((data[f] || [])[i])).join(','));
+        }
+
+        const stamp = new Date().toISOString().slice(0, 10);
+        const blob = new Blob([lines.join('\\n')], {type: 'text/csv;charset=utf-8;'});
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'u19_subjects_' + stamp + '.csv';
+        link.click();
+        URL.revokeObjectURL(link.href);
+        '''))
+
     data_table = DataTable(
         source=source,
         columns=columns,
@@ -264,7 +310,7 @@ def subject_tab():
     # include-dead checkbox.
     return Panel(child=layout(row(column(row(owners, rigs),
                                          row(sexes, subjects),
-                                         include_dead,
+                                         row(include_dead, download),
                                          busy.div,
                                          data_table,
                                          # Photos go under the table, in space

@@ -69,6 +69,28 @@ def rigs_of(subject_fullname):
             if row['session_location']]
 
 
+def rigs_by_subject(restriction=None):
+    '''
+    Map every subject to the rigs it has trained on, most-used first.
+
+    One grouped query for the whole table, rather than rigs_of() per row: the
+    subject table routinely shows hundreds of rows.
+    '''
+    sessions = acquisition.Session
+    if restriction is not None:
+        sessions = sessions & restriction
+
+    counts = dj.U('subject_fullname', 'session_location').aggr(
+        sessions, n='count(*)')
+
+    rigs = {}
+    for row in counts.fetch(order_by='n DESC', as_dict=True):
+        if row['session_location']:
+            rigs.setdefault(row['subject_fullname'], []).append(
+                row['session_location'])
+    return rigs
+
+
 def all_rigs():
     '''Every rig that has hosted a session, for populating a filter.'''
     counts = dj.U('session_location').aggr(acquisition.Session, n='count(*)')
