@@ -1,0 +1,91 @@
+{
+    "_comment": [
+        "Template for dj_local_conf.json. Copy this file to dj_local_conf.json",
+        "and adjust the paths for your machine. The real file is untracked and",
+        "excluded from the Docker image on purpose; keep it that way.",
+        "",
+        "DO NOT put credentials in this file. No database.user, no",
+        "database.password, and no database.host. Treat this file as public.",
+        "Credentials belong in .env, as DJ_USER / DJ_PASS / DJ_HOST, which",
+        "DataJoint reads directly. Environment variables override this file,",
+        "so a credential added here is also silently ignored whenever .env",
+        "sets the same value: it leaks without taking effect.",
+        "",
+        "The store locations below are the paths as seen from the host. The",
+        "container mounts the same share elsewhere, so DJ_STORE_ROOT rewrites",
+        "the prefix at startup (see _relocate_stores in viewer/modules.py) and",
+        "one file serves both. Set the locations to whatever this host uses."
+    ],
+    "database.port": 3306,
+    "database.reconnect": true,
+    "connection.init_function": null,
+    "connection.charset": "",
+    "loglevel": "INFO",
+    "safemode": true,
+    "fetch_format": "array",
+    "display.limit": 12,
+    "display.width": 14,
+    "display.show_tuple_count": true,
+    "database.use_tls": null,
+    "enable_python_native_blobs": true,
+    "add_hidden_timestamp": false,
+    "filepath_checksum_size_limit": null,
+    "custom": {
+        "database.prefix": "u19_",
+        "database.test.prefix": "u19_",
+        "root_data_dir": [
+            "/Volumes/braininit/Data/Raw",
+            "/Volumes/braininit/Data/Processed"
+        ],
+        "behavior_root_data_dir": "/Volumes/braininit/Data/Raw/behavior",
+        "ephys_root_data_dir": [
+            "/Volumes/braininit/Data/Raw/electrophysiology",
+            "/Volumes/braininit/Data/Processed/electrophysiology"
+        ],
+        "imaging_root_data_dir": [
+            "/Volumes/braininit/Data/Raw/imaging",
+            "/Volumes/braininit/Data/Processed/imaging"
+        ],
+        "pupillometry_root_data_dir": [
+            "/Volumes/braininit/Data/Raw/video_pupillometry",
+            "/Volumes/braininit/Data/Processed/video_pupillometry"
+        ],
+        "video_root_data_dir": [
+            "/Volumes/braininit/Data/Raw/video_acquisition",
+            "/Volumes/braininit/Data/Processed/video_acquisition"
+        ],
+        "temporary_processed_data": "braininit/Data/TemporaryProcessed/",
+        "error_logs_dir": "/Volumes/braininit/Data/Processed/LOGS/ErrorLogs",
+        "output_logs_dir": "/Volumes/braininit/Data/Processed/LOGS/OutputLogs"
+    },
+    "stores": {
+        "behaviortimespatialblobs": {
+            "protocol": "file",
+            "location": "/Volumes/u19_dj/external_dj_blobs/behavior_time_spatial_blobs"
+        },
+        "dailyposition": {
+            "protocol": "file",
+            "location": "/Volumes/u19_dj/external_dj_blobs/daily_position"
+        },
+        "ephys_store": {
+            "protocol": "file",
+            "location": "/Volumes/u19_dj/external_dj_blobs/ephys_precluster"
+        },
+        "extstorage": {
+            "protocol": "file",
+            "location": "/Volumes/u19_dj/external_dj_blobs"
+        },
+        "headplate_images": {
+            "protocol": "file",
+            "location": "/Volumes/u19_dj/external_files/headplate_images"
+        },
+        "imaging_store": {
+            "protocol": "file",
+            "location": "/Volumes/u19_dj/external_dj_blobs/imaging_preprocess"
+        },
+        "old_dailyposition": {
+            "protocol": "file",
+            "location": "/Volumes/u19_dj/external_dj_blobs/old_daily_position"
+        }
+    }
+}
