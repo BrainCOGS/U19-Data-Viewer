@@ -1,0 +1,19 @@
+[project]
+name = "princeton-u19-data-viewer"
+version = "0.0.1"
+description = "Data Viewer for Princeton Data pipeline"
+authors = [{ name = "DataJoint", email = "info@datajoint.com" }]
+license = "LGPL-3.0-or-later"
+keywords = ["database", "viewer"]
+requires-python = ">=3.10"
+dependencies = [
+    "datajoint<2",
+    "bokeh~=3.8.2",
+]
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+exclude = ["contrib", "docs", "tests*"]
