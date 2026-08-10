@@ -34,7 +34,7 @@ services:
     volumes:
       - .:/data_viewer
       # External blob store holding the subject photos.
-      - ${U19_DJ_HOST_PATH:-/mnt/u19_dj}:/mnt/u19_dj:ro
+      - ${U19_DJ_HOST_PATH:-/mnt/cup/u19_dj}:/mnt/cup/u19_dj:ro
     expose:
       - 5000
     ports:
@@ -43,7 +43,7 @@ services:
     environment:
       # Defaults suit a local run; see env.template to override any of these.
       - EXTRA_WS_ORIGINS=${EXTRA_WS_ORIGINS:-localhost:5001,127.0.0.1:5001}
-      - DJ_STORE_ROOT=${DJ_STORE_ROOT:-/mnt/u19_dj}
+      - DJ_STORE_ROOT=${DJ_STORE_ROOT:-/mnt/cup/u19_dj}
       - DJ_STORE_ROOT_REPLACES=${DJ_STORE_ROOT_REPLACES:-}
       - SESSION_TOKEN_EXPIRATION=${SESSION_TOKEN_EXPIRATION:-3600}
       - PREWARM_TABS=${PREWARM_TABS:-}
