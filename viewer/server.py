@@ -173,7 +173,9 @@ def main():
                     address='0.0.0.0',
                     port=port, num_procs=nproc,
                     session_token_expiration=int(
-                        os.environ.get('SESSION_TOKEN_EXPIRATION', 3600)))
+                        # Blank counts as unset: compose forwards the variable
+                        # even when it has no value.
+                        os.environ.get('SESSION_TOKEN_EXPIRATION') or 3600))
     server.start()
     print('Opening Bokeh application on http://localhost:{0}/'.format(server.port))
     if browser:
