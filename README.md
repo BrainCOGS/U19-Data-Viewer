@@ -38,7 +38,7 @@
     git clone https://github.com/<BrainCOGS or vathes>/U19-Data-Viewer.git 
     ```
 
-3. Rename the file `.env.template` to `.env`.
+3. Copy the file `env.template` to `.env`.
 
 4. Copy and modify the following values into the `.env` file.
     ```

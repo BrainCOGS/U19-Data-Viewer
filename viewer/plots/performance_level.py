@@ -1,13 +1,25 @@
 from viewer.modules import subject, acquisition, behavior, puffs
 from viewer.utils import *
+from viewer import subject_filters
 
 
 def plot(key=None):
 
+    no_data = {
+        'session_dates': [np.nan],
+        'performance'  : [np.nan],
+        'level'        : [np.nan],
+        'n_trials'     : [np.nan]}
+
     def get_data(key):
 
-        task = (dj.U('task') & (acquisition.Session & key)).fetch1('task')
-        if task == 'AirPuffs':
+        # A subject may have no sessions at all, or sessions across more than
+        # one task, so take the tasks as a set rather than assuming exactly one.
+        tasks = (dj.U('task') & (acquisition.Session & key)).fetch('task')
+        if not len(tasks):
+            return dict(no_data)
+
+        if 'AirPuffs' in tasks:
             q = (acquisition.Session & key).aggr(puffs.PuffsSession.Trial.proj(), n_trials='count(*)') * acquisition.Session
         else:
             q = (acquisition.Session & key).proj(..., n_trials='num_trials')
@@ -23,11 +35,7 @@ def plot(key=None):
                 'n_trials'     : performance_info['n_trials']})
             data_performance['session_dates'] = pd.to_datetime(data_performance['session_dates'])
         else:
-            data_performance = {
-                'session_dates': [np.nan],
-                'performance'  : [np.nan],
-                'level'        : [np.nan],
-                'n_trials'     : [np.nan]}
+            data_performance = dict(no_data)
 
         return data_performance
 
@@ -49,13 +57,25 @@ def plot(key=None):
                 p.extra_y_ranges[subplot.y_range_name] = Range1d(
                     0, max([300, max(data_performance[subplot.y_range_name])]))
 
+    BASE_TITLE = 'Performance, trial counts, and task level'
+
+    def get_title(key):
+        '''
+        Name the rig(s) the subject trained on in the title. Usually one, but a
+        subject can move between rigs, so all are listed most-used first.
+        '''
+        rigs = subject_filters.rigs_of(key.get('subject_fullname'))
+        if not rigs:
+            return BASE_TITLE
+        return '{} — rig: {}'.format(BASE_TITLE, ', '.join(rigs))
+
     if key is None:
         key = dict(subject_fullname='emanuele_B208')
 
     data_performance = get_data(key)
 
     p = figure(x_axis_type="datetime", width=600, height=300,
-               title='Performance, trial counts, and task level',
+               title=get_title(key),
                x_axis_label='Date',
                y_axis_label='Task level', y_axis_location='right')
 
@@ -96,11 +116,14 @@ def plot(key=None):
 
     p.legend.location = (290, 10)
 
+    # p.title has no data_source, so UpdatableFigure falls through to setting
+    # .text on it: that is how the rig name follows the selected subject.
     return p, [(performance_plot_line, get_data, update_view),
                (performance_plot_dot, get_data, update_view),
                (trial_counts_plot_line, get_data, update_view),
                (trial_counts_plot_dot, get_data, update_view),
-               (level_plot, get_data, update_view)]
+               (level_plot, get_data, update_view),
+               (p.title, get_title, None)]
 
 
 if __name__ == '__main__':

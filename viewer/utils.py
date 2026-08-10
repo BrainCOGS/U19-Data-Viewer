@@ -10,12 +10,14 @@ from bokeh.models import (ColumnDataSource,
                           TableColumn,
                           DateFormatter,
                           DataTable,
+                          Div,
                           Label,
                           TabPanel as Panel,
                           TextInput,
                           DatePicker,
                           RadioGroup,
                           Select,
+                          CheckboxGroup,
                           Button)
 from bokeh.models import LinearAxis, Range1d
 from bokeh.plotting import figure, show
