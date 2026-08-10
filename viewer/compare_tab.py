@@ -15,20 +15,27 @@ def _subject_panel(default_subject, label, owners, rigs):
     without them sharing any state.
     '''
 
+    # Two filters per row, so each side's controls stay a compact block. FULL
+    # matches the 600px plots below, and HALF is half of that less the gap, so
+    # the filters, the plots and the photo pairs all line up.
+    FULL = 600
+    HALF = 295
+
     owner_select = Select(title='Owner:', value='All',
-                          options=['All'] + owners, width=260)
+                          options=['All'] + owners, width=HALF)
     rig_select = Select(title='Training rig:', value='All',
-                        options=['All'] + rigs, width=260)
+                        options=['All'] + rigs, width=HALF)
     sex_select = Select(title='Sex:', value='All',
-                        options=['All', 'Male', 'Female', 'Unknown'], width=260)
+                        options=['All', 'Male', 'Female', 'Unknown'],
+                        width=HALF)
     # Most subjects in the database are dead, so they are hidden by default.
     dead_check = CheckboxGroup(labels=['Include dead subjects'], active=[],
-                               width=260)
+                               width=HALF)
 
     subjects = Select(title='{} subject:'.format(label), value=default_subject,
-                      options=[default_subject], width=260)
+                      options=[default_subject], width=HALF)
 
-    busy = BusyIndicator(width=260)
+    busy = BusyIndicator(width=FULL)
 
     def available_subjects():
         '''Subjects matching this side's prefilters.'''
@@ -62,9 +69,10 @@ def _subject_panel(default_subject, label, owners, rigs):
         .add_figure_creator(water_weight.plot) \
         .build()
 
-    # Narrower panels here: two of these columns sit side by side.
+    # Narrower panels here: two of these columns sit side by side, and two
+    # photos per row have to fit inside one column.
     photos_grid, photos_subplots = subject_photos.plot(
-        panel_width=290, panel_height=210)
+        panel_width=HALF, panel_height=210)
     photos_figure = UpdatableFigure(photos_grid, photos_subplots)
 
     def refresh(subject_fullname):
@@ -92,12 +100,12 @@ def _subject_panel(default_subject, label, owners, rigs):
     if subjects.value and not subjects.value.startswith('('):
         refresh(subjects.value)
 
-    panel = column(Div(text='<b>{}</b>'.format(label)),
-                   owner_select,
-                   rig_select,
-                   sex_select,
+    # Same grouping as the subject tab -- (owner, subject), (sex, rig), then the
+    # dead checkbox -- so the two pages read the same way.
+    panel = column(Div(text='<b>{}</b>'.format(label), width=FULL),
+                   row(owner_select, subjects),
+                   row(sex_select, rig_select),
                    dead_check,
-                   subjects,
                    busy.div,
                    *[fig.fig for (fig, _) in figure_collection.updatable_list],
                    photos_grid)
