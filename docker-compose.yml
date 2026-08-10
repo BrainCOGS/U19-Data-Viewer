@@ -33,10 +33,12 @@ services:
       dockerfile: ./viewer/viewer.Dockerfile
     volumes:
       - .:/data_viewer
-      # Subject photos live in the 'dailyposition' external blob store (see the
-      # "stores" key in dj_local_conf.json). Without this mount the photo
-      # panels degrade to "No image".
-      - /Volumes/u19_dj:/Volumes/u19_dj:ro
+      # Subject photos live in the 'dailyposition' external blob store. The
+      # container path matches the Linux deployment; set the host side with
+      # U19_DJ_HOST_PATH (macOS mounts this at /Volumes/u19_dj). The "stores"
+      # locations in dj_local_conf.json must point at /mnt/u19_dj to match, or
+      # the photo panels degrade to "No image".
+      - ${U19_DJ_HOST_PATH:-/mnt/u19_dj}:/mnt/u19_dj:ro
     expose:
       - 5000
     ports:
@@ -48,6 +50,9 @@ services:
       # The browser's Origin carries the host port (5001), but the server only
       # knows the port it listens on (5000), so allow the published one too.
       - EXTRA_WS_ORIGINS=localhost:5001,127.0.0.1:5001
+      # Re-root the external blob stores onto the container's mount point, so
+      # dj_local_conf.json can keep the host's own paths.
+      - DJ_STORE_ROOT=/mnt/u19_dj
     restart: unless-stopped
 
 
