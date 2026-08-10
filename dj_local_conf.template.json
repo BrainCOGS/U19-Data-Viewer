@@ -11,10 +11,14 @@
         "so a credential added here is also silently ignored whenever .env",
         "sets the same value: it leaks without taking effect.",
         "",
-        "The store locations below are the paths as seen from the host. The",
-        "container mounts the same share elsewhere, so DJ_STORE_ROOT rewrites",
-        "the prefix at startup (see _relocate_stores in viewer/modules.py) and",
-        "one file serves both. Set the locations to whatever this host uses."
+        "The store locations below are the paths as seen from the host, and",
+        "assume the Linux deployment hosts, where the share is at",
+        "/mnt/cup/u19_dj. Set them to whatever this host uses: on a macOS",
+        "workstation the same share is typically /Volumes/u19_dj.",
+        "",
+        "The container mounts the share at its own path, so DJ_STORE_ROOT",
+        "rewrites the prefix at startup (see _relocate_stores in",
+        "viewer/modules.py) and one file serves both host and container."
     ],
     "database.port": 3306,
     "database.reconnect": true,
@@ -61,31 +65,31 @@
     "stores": {
         "behaviortimespatialblobs": {
             "protocol": "file",
-            "location": "/Volumes/u19_dj/external_dj_blobs/behavior_time_spatial_blobs"
+            "location": "/mnt/cup/u19_dj/external_dj_blobs/behavior_time_spatial_blobs"
         },
         "dailyposition": {
             "protocol": "file",
-            "location": "/Volumes/u19_dj/external_dj_blobs/daily_position"
+            "location": "/mnt/cup/u19_dj/external_dj_blobs/daily_position"
         },
         "ephys_store": {
             "protocol": "file",
-            "location": "/Volumes/u19_dj/external_dj_blobs/ephys_precluster"
+            "location": "/mnt/cup/u19_dj/external_dj_blobs/ephys_precluster"
         },
         "extstorage": {
             "protocol": "file",
-            "location": "/Volumes/u19_dj/external_dj_blobs"
+            "location": "/mnt/cup/u19_dj/external_dj_blobs"
         },
         "headplate_images": {
             "protocol": "file",
-            "location": "/Volumes/u19_dj/external_files/headplate_images"
+            "location": "/mnt/cup/u19_dj/external_files/headplate_images"
         },
         "imaging_store": {
             "protocol": "file",
-            "location": "/Volumes/u19_dj/external_dj_blobs/imaging_preprocess"
+            "location": "/mnt/cup/u19_dj/external_dj_blobs/imaging_preprocess"
         },
         "old_dailyposition": {
             "protocol": "file",
-            "location": "/Volumes/u19_dj/external_dj_blobs/old_daily_position"
+            "location": "/mnt/cup/u19_dj/external_dj_blobs/old_daily_position"
         }
     }
 }
