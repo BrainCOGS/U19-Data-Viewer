@@ -1,0 +1,75 @@
+version: 2
+
+updates:
+  #
+  # Python / uv
+  #
+  - package-ecosystem: "uv"
+    directory: "/"
+    cooldown:
+      default-days: 7
+
+    schedule:
+      interval: "monthly"
+      day: "wednesday"
+      time: "06:00"
+      timezone: "UTC"
+
+    open-pull-requests-limit: 5
+
+    labels:
+      - "dependencies"
+      - "python"
+
+    commit-message:
+      prefix: "deps"
+
+    rebase-strategy: "auto"
+
+    groups:
+      python:
+        patterns:
+          - "*"
+
+    ignore:
+      # datajoint 2.x renamed its config file and cannot read the
+      # dj_local_conf.json this repo ships, so stay on 0.14.x.
+      - dependency-name: "datajoint"
+        versions:
+          - ">=2.0"
+      # datajoint <2.0 imports pkg_resources, which setuptools 83.0.0 removed
+      # outright, so any bump to >=82 breaks every `import datajoint`.
+      # Revisit once the datajoint 2.x migration lands.
+      - dependency-name: "setuptools"
+        versions:
+          - ">=82"
+
+  #
+  # Docker -- one entry per directory containing a Dockerfile
+  #
+  - package-ecosystem: "docker"
+    directories:
+      - "/apache"
+      - "/viewer"
+
+    schedule:
+      interval: "monthly"
+      day: "tuesday"
+      time: "06:00"
+      timezone: "UTC"
+
+    open-pull-requests-limit: 5
+
+    labels:
+      - "dependencies"
+      - "docker"
+
+    commit-message:
+      prefix: "docker"
+
+    rebase-strategy: "auto"
+
+    groups:
+      docker:
+        patterns:
+          - "*"
