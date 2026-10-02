@@ -30,3 +30,31 @@ dev = ["pytest>=8"]
 minversion = "8.0"
 addopts = ["-ra", "--strict-config", "--strict-markers", "--import-mode=importlib"]
 testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py310"
+# The code base was never formatted with black; keep its single quotes so the
+# format commit does not rewrite every string literal.
+line-length = 88
+
+[tool.ruff.format]
+quote-style = "preserve"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "UP", "B"]
+ignore = [
+    # The viewer modules use `from x import *` throughout (utils, modules,
+    # updatable_figures); removing them means touching every module.
+    "F403",
+    "F405",
+    # Left as-is rather than risk a behavior change.
+    "E721",
+    "UP030",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# These modules are star-imported by the tab/plot modules, so their "unused"
+# imports are really re-exports. Removing them would break those modules.
+"viewer/utils.py" = ["F401"]
+"viewer/modules.py" = ["F401"]
+"viewer/updatable_figures.py" = ["F401"]
