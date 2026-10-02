@@ -66,7 +66,7 @@ def session_tab():
 
     def callback_subject_filter(attr, old, new):
 
-        if 'subject_fullname' in current_filter.keys():
+        if 'subject_fullname' in current_filter:
             current_filter.pop('subject_fullname')
 
         if new != 'All':
@@ -100,7 +100,7 @@ def session_tab():
 
     def callback_level_filter(attr, old, new):
 
-        if 'level' in current_filter.keys():
+        if 'level' in current_filter:
             current_filter.pop('level')
 
         if new != 'All':
@@ -134,7 +134,7 @@ def session_tab():
 
     def callback_task_filter(attr, old, new):
 
-        if 'task' in current_filter.keys():
+        if 'task' in current_filter:
             current_filter.pop('task')
 
         if new != 'All':

@@ -207,7 +207,7 @@ def subject_tab():
 
     def callback_filter_impl(new, field):
 
-        if field in current_filter.keys():
+        if field in current_filter:
             current_filter.pop(field)
 
         if new != 'All':
