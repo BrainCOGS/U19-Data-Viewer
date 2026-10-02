@@ -10,23 +10,22 @@ tick, so the user gets immediate feedback that their click registered.
 
 from bokeh.models import Div
 
-
-BUSY_STYLE = ('padding:4px 10px;border-radius:3px;'
-              'font-size:12px;font-weight:bold;')
+BUSY_STYLE = 'padding:4px 10px;border-radius:3px;font-size:12px;font-weight:bold;'
 
 
 class BusyIndicator:
-
     def __init__(self, width=260):
-        self.div = Div(text='', width=width,
-                       styles={'padding': '4px 0', 'font-size': '12px'})
+        self.div = Div(
+            text='', width=width, styles={'padding': '4px 0', 'font-size': '12px'}
+        )
         self._depth = 0
 
     def _render(self, message=None):
         if message:
             self.div.text = (
-                '<span style="{}background:#fff3cd;color:#856404;">'
-                '⏳ {}</span>'.format(BUSY_STYLE, message))
+                f'<span style="{BUSY_STYLE}background:#fff3cd;color:#856404;">'
+                f'⏳ {message}</span>'
+            )
         else:
             self.div.text = ''
 

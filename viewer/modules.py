@@ -1,6 +1,6 @@
 import os
-import datajoint as dj
 
+import datajoint as dj
 
 #: Directory the share's contents sit under, whatever it is mounted on.
 STORE_SUBDIRS = ('external_dj_blobs', 'external_files')
@@ -17,7 +17,7 @@ def _infer_old_root(locations):
         for subdir in STORE_SUBDIRS:
             marker = '/' + subdir
             if marker in location:
-                return location[:location.index(marker)]
+                return location[: location.index(marker)]
     return None
 
 
@@ -40,15 +40,14 @@ def _relocate_stores():
     stores = dj.config.get('stores') or {}
     locations = [s.get('location') for s in stores.values() if s.get('location')]
 
-    old_root = os.environ.get('DJ_STORE_ROOT_REPLACES') or _infer_old_root(
-        locations)
+    old_root = os.environ.get('DJ_STORE_ROOT_REPLACES') or _infer_old_root(locations)
     if not old_root or old_root == store_root:
         return
 
     for store in stores.values():
         location = store.get('location')
         if location and location.startswith(old_root):
-            store['location'] = store_root + location[len(old_root):]
+            store['location'] = store_root + location[len(old_root) :]
     dj.config['stores'] = stores
 
 

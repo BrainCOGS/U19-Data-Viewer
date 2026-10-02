@@ -1,16 +1,20 @@
-from viewer.utils import *
-from viewer.modules import *
-from viewer.plots import (water_weight, performance_level, subject_psych_curve,
-                          motor_coordinates, subject_photos)
-from viewer.updatable_figures import *
-from viewer.busy_indicator import BusyIndicator
 from viewer import subject_filters
+from viewer.busy_indicator import BusyIndicator
+from viewer.modules import *
+from viewer.plots import (
+    motor_coordinates,
+    performance_level,
+    subject_photos,
+    subject_psych_curve,
+    water_weight,
+)
+from viewer.updatable_figures import *
+from viewer.utils import *
 
 
 def subject_tab():
 
-    table_columns = ['subject_fullname', 'user_id', 'sex', 'dob', 'location',
-                     'line']
+    table_columns = ['subject_fullname', 'user_id', 'sex', 'dob', 'location', 'line']
 
     # Training rig is not a column on subject.Subject, so it restricts through
     # sessions rather than sitting in the plain field filter.
@@ -41,33 +45,39 @@ def subject_tab():
         # One grouped query for every visible subject, not one per row. Most
         # subjects train on a single rig; the rest are listed most-used first.
         rigs = subject_filters.rigs_by_subject(query.proj())
-        df['rig'] = [', '.join(rigs.get(name, [])) or 'None'
-                     for name in df['subject_fullname']]
+        df['rig'] = [
+            ', '.join(rigs.get(name, [])) or 'None' for name in df['subject_fullname']
+        ]
         return df
 
     all_subjects = subject_query({}).fetch('subject_fullname').tolist()
-    subjects = Select(title='Subject:', value='All', options=['All'] + all_subjects,
-                      width=150)
+    subjects = Select(
+        title='Subject:', value='All', options=['All'] + all_subjects, width=150
+    )
 
-    all_owners = (dj.U('user_id') & subject_filters.living_subjects()).fetch(
-        'user_id').tolist()
-    owners = Select(title='Owner:', value='All', options=['All'] + all_owners,
-                    width=150)
+    all_owners = (
+        (dj.U('user_id') & subject_filters.living_subjects()).fetch('user_id').tolist()
+    )
+    owners = Select(
+        title='Owner:', value='All', options=['All'] + all_owners, width=150
+    )
 
-    all_sexes = [s for s in ('Male', 'Female', 'Unknown')
-                 if subject.Subject & dict(sex=s)]
-    sexes = Select(title='Sex:', value='All', options=['All'] + all_sexes,
-                   width=150)
+    all_sexes = [
+        s for s in ('Male', 'Female', 'Unknown') if subject.Subject & dict(sex=s)
+    ]
+    sexes = Select(title='Sex:', value='All', options=['All'] + all_sexes, width=150)
 
-    rigs = Select(title='Training rig:', value='All',
-                  options=['All'] + subject_filters.all_rigs(), width=150)
+    rigs = Select(
+        title='Training rig:',
+        value='All',
+        options=['All'] + subject_filters.all_rigs(),
+        width=150,
+    )
 
     # Most subjects in the database are dead, so they are hidden by default.
-    include_dead = CheckboxGroup(labels=['Include dead subjects'], active=[],
-                                 width=200)
+    include_dead = CheckboxGroup(labels=['Include dead subjects'], active=[], width=200)
 
-    download = Button(label='Download table (CSV)', button_type='primary',
-                      width=200)
+    download = Button(label='Download table (CSV)', button_type='primary', width=200)
 
     levels = Select(title='Level', value='All', options=['All'], width=150)
 
@@ -90,15 +100,17 @@ def subject_tab():
         TableColumn(field="user_id", title="Owner"),
         TableColumn(field="location", title="Location"),
         TableColumn(field="rig", title="Training rig"),
-        TableColumn(field="line", title="Line")
+        TableColumn(field="line", title="Line"),
     ]
 
-    figure_collection = UpdatableFigureCollectionFactory() \
-        .add_figure_creator(water_weight.plot) \
-        .add_figure_creator(performance_level.plot) \
-        .add_figure_creator(motor_coordinates.plot) \
-        .add_figure_creator(subject_psych_curve.plot, dict(level='All')) \
+    figure_collection = (
+        UpdatableFigureCollectionFactory()
+        .add_figure_creator(water_weight.plot)
+        .add_figure_creator(performance_level.plot)
+        .add_figure_creator(motor_coordinates.plot)
+        .add_figure_creator(subject_psych_curve.plot, dict(level='All'))
         .build()
+    )
 
     # Figures are addressed positionally in updatable_list; name the indices so
     # inserting a plot above cannot silently re-point the level filter.
@@ -113,20 +125,34 @@ def subject_tab():
 
         nonlocal levels
         nonlocal figure_collection
-        tasks = (dj.U('task') & (acquisition.Session & dict(subject_fullname=subj))).fetch('task')
+        tasks = (
+            dj.U('task') & (acquisition.Session & dict(subject_fullname=subj))
+        ).fetch('task')
         if not len(tasks):
             levels.options = ['All']
             levels.value = 'All'
             return
         task = tasks[0]
         if task == 'AirPuffs':
-            all_levels = list((dj.U('psych_level') &
-                               (puffs.PuffsSubjectCumulativePsychLevel &
-                                dict(subject_fullname=subj))).fetch('psych_level'))
+            all_levels = list(
+                (
+                    dj.U('psych_level')
+                    & (
+                        puffs.PuffsSubjectCumulativePsychLevel
+                        & dict(subject_fullname=subj)
+                    )
+                ).fetch('psych_level')
+            )
         elif task == 'Towers':
-            all_levels = list((dj.U('psych_level') &
-                               (behavior.TowersSubjectCumulativePsychLevel &
-                                dict(subject_fullname=subj))).fetch('psych_level'))
+            all_levels = list(
+                (
+                    dj.U('psych_level')
+                    & (
+                        behavior.TowersSubjectCumulativePsychLevel
+                        & dict(subject_fullname=subj)
+                    )
+                ).fetch('psych_level')
+            )
         else:
             all_levels = []
 
@@ -142,8 +168,7 @@ def subject_tab():
         levels.value = levels_value
 
     def callback_filter(attr, old, new, field):
-        busy.run_busy(lambda: callback_filter_impl(new, field),
-                      'Filtering subjects…')
+        busy.run_busy(lambda: callback_filter_impl(new, field), 'Filtering subjects…')
 
     def callback_rig(attr, old, new):
         def apply():
@@ -151,7 +176,9 @@ def subject_tab():
             refresh_table()
             # Keep the subject list in step with the rig.
             subjects.options = ['All'] + subject_query({}).fetch(
-                'subject_fullname').tolist()
+                'subject_fullname'
+            ).tolist()
+
         busy.run_busy(apply, 'Filtering by rig…')
 
     def callback_include_dead(attr, old, new):
@@ -159,7 +186,9 @@ def subject_tab():
             show_dead['value'] = bool(new)
             refresh_table()
             subjects.options = ['All'] + subject_query({}).fetch(
-                'subject_fullname').tolist()
+                'subject_fullname'
+            ).tolist()
+
         busy.run_busy(apply, 'Reloading subjects…')
 
     def refresh_table():
@@ -178,7 +207,7 @@ def subject_tab():
 
     def callback_filter_impl(new, field):
 
-        if field in current_filter.keys():
+        if field in current_filter:
             current_filter.pop(field)
 
         if new != 'All':
@@ -202,27 +231,30 @@ def subject_tab():
         # The companion dropdowns follow the same alive/rig scope as the table.
         if field == 'subject_fullname':
             if new != 'All':
-                owner = subject_query(
-                    dict(subject_fullname=new)).fetch('user_id').tolist()
+                owner = (
+                    subject_query(dict(subject_fullname=new)).fetch('user_id').tolist()
+                )
                 owners.options = ['All'] + owner
             else:
-                all_owners = (dj.U('user_id') & subject_query({})).fetch(
-                    'user_id').tolist()
+                all_owners = (
+                    (dj.U('user_id') & subject_query({})).fetch('user_id').tolist()
+                )
                 owners.options = ['All'] + all_owners
 
         if field == 'user_id':
             if new != 'All':
-                all_subjects = subject_query(
-                    dict(user_id=new)).fetch('subject_fullname').tolist()
+                all_subjects = (
+                    subject_query(dict(user_id=new)).fetch('subject_fullname').tolist()
+                )
                 subjects.options = ['All'] + all_subjects
             else:
-                all_subjects = subject_query({}).fetch(
-                    'subject_fullname').tolist()
+                all_subjects = subject_query({}).fetch('subject_fullname').tolist()
                 subjects.options = ['All'] + all_subjects
 
     def callback_level_filter(attr, old, new):
-        busy.run_busy(lambda: callback_level_filter_impl(new),
-                      'Loading psychometric curve…')
+        busy.run_busy(
+            lambda: callback_level_filter_impl(new), 'Loading psychometric curve…'
+        )
 
     def callback_level_filter_impl(new):
 
@@ -230,13 +262,16 @@ def subject_tab():
         if current_subject_fullname is None:
             return
         figure_collection.updatable_list[psych_index][0].update(
-            dict(subject_fullname=current_subject_fullname), dict(level=new))
+            dict(subject_fullname=current_subject_fullname), dict(level=new)
+        )
 
     def update_selected_subject():
         nonlocal current_subject_fullname
         try:
             selected_index = source.selected.indices[0]
-            current_subject_fullname = str(source.data['subject_fullname'][selected_index])
+            current_subject_fullname = str(
+                source.data['subject_fullname'][selected_index]
+            )
             update_level_filter(current_subject_fullname)
             figure_collection.update(dict(subject_fullname=current_subject_fullname))
             photos_figure.update(dict(subject_fullname=current_subject_fullname))
@@ -269,11 +304,14 @@ def subject_tab():
     # The download has to happen in the browser: a bokeh server callback cannot
     # hand the client a file. The data is already in the ColumnDataSource, so
     # the CSV is built from that and saved through a temporary blob URL.
-    download.js_on_click(CustomJS(
-        args=dict(source=source,
-                  fields=[c.field for c in columns],
-                  headers=[c.title for c in columns]),
-        code='''
+    download.js_on_click(
+        CustomJS(
+            args=dict(
+                source=source,
+                fields=[c.field for c in columns],
+                headers=[c.title for c in columns],
+            ),
+            code='''
         const data = source.data;
         const n = (data[fields[0]] || []).length;
 
@@ -302,7 +340,9 @@ def subject_tab():
         link.download = 'u19_subjects_' + stamp + '.csv';
         link.click();
         URL.revokeObjectURL(link.href);
-        '''))
+        ''',
+        )
+    )
 
     data_table = DataTable(
         source=source,
@@ -310,24 +350,35 @@ def subject_tab():
         width=800,
         # Kept short enough that the photo panels below stay on screen without
         # scrolling; the table scrolls internally.
-        height=360)
+        height=360,
+    )
 
     # Order matches the compare tab: owner, rig, sex, subject, then the
     # include-dead checkbox.
-    return Panel(child=layout(row(column(row(owners, rigs),
-                                         row(sexes, subjects),
-                                         row(include_dead, download),
-                                         busy.div,
-                                         data_table,
-                                         # Photos go under the table, in space
-                                         # the left column already has. Putting
-                                         # them beside a plot pushed the page
-                                         # past the width of a typical window.
-                                         Div(text='<b>Latest position captures</b>'),
-                                         photos_figure.fig),
-                                  column(figure_collection.updatable_list[water_index][0].fig,
-                                         figure_collection.updatable_list[performance_index][0].fig,
-                                         figure_collection.updatable_list[coordinates_index][0].fig,
-                                         levels,
-                                         figure_collection.updatable_list[psych_index][0].fig))),
-                 title='Subject')
+    return Panel(
+        child=layout(
+            row(
+                column(
+                    row(owners, rigs),
+                    row(sexes, subjects),
+                    row(include_dead, download),
+                    busy.div,
+                    data_table,
+                    # Photos go under the table, in space
+                    # the left column already has. Putting
+                    # them beside a plot pushed the page
+                    # past the width of a typical window.
+                    Div(text='<b>Latest position captures</b>'),
+                    photos_figure.fig,
+                ),
+                column(
+                    figure_collection.updatable_list[water_index][0].fig,
+                    figure_collection.updatable_list[performance_index][0].fig,
+                    figure_collection.updatable_list[coordinates_index][0].fig,
+                    levels,
+                    figure_collection.updatable_list[psych_index][0].fig,
+                ),
+            )
+        ),
+        title='Subject',
+    )

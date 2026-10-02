@@ -1,7 +1,7 @@
+from bokeh.models import LinearColorMapper
+
 from viewer.modules import action
 from viewer.utils import *
-
-from bokeh.models import LinearColorMapper
 
 # Images stored on action.DailySubjectPositionData, in display order.
 IMAGE_COLUMNS = [('top_image', 'Top'), ('lateral_image', 'Lateral')]
@@ -24,8 +24,7 @@ def _placeholder_image(width=160, height=120):
 
 def _no_image():
     '''Empty columns, for the glyph that is not showing this image.'''
-    return {'image': [], 'x': [], 'y': [], 'dw': [], 'dh': [],
-            'real': [], 'color': []}
+    return {'image': [], 'x': [], 'y': [], 'dw': [], 'dh': [], 'real': [], 'color': []}
 
 
 def _empty_image():
@@ -33,8 +32,15 @@ def _empty_image():
     height, width = image.shape
     # 'real' distinguishes a stand-in from an actual capture; it rides along in
     # the data source so update_view can label the panel correctly.
-    return {'image': [image], 'x': [0], 'y': [0],
-            'dw': [width], 'dh': [height], 'real': [False], 'color': [False]}
+    return {
+        'image': [image],
+        'x': [0],
+        'y': [0],
+        'dw': [width],
+        'dh': [height],
+        'real': [False],
+        'color': [False],
+    }
 
 
 def _to_rgba(image):
@@ -106,12 +112,19 @@ def plot(key=None, plot_filter=None, panel_width=390, panel_height=280):
             # fetch as best-effort rather than letting the tab fail to build.
             try:
                 captures_cache[cache_key] = (
-                    action.DailySubjectPositionData & key).fetch(
-                    'capture_time', column, order_by='capture_time DESC',
-                    limit=N_CAPTURES, as_dict=True)
+                    action.DailySubjectPositionData & key
+                ).fetch(
+                    'capture_time',
+                    column,
+                    order_by='capture_time DESC',
+                    limit=N_CAPTURES,
+                    as_dict=True,
+                )
             except Exception as error:
-                print('Could not read {} from the external store: {}'.format(
-                    column, error), flush=True)
+                print(
+                    f'Could not read {column} from the external store: {error}',
+                    flush=True,
+                )
                 captures_cache[cache_key] = []
         return captures_cache[cache_key]
 
@@ -129,9 +142,15 @@ def plot(key=None, plot_filter=None, panel_width=390, panel_height=280):
                 return _empty_image()
 
             height, width = image.shape
-            return {'image': [image], 'x': [0], 'y': [0],
-                    'dw': [width], 'dh': [height], 'real': [True],
-                    'color': [is_color]}
+            return {
+                'image': [image],
+                'x': [0],
+                'y': [0],
+                'dw': [width],
+                'dh': [height],
+                'real': [True],
+                'color': [is_color],
+            }
 
         return get_data
 
@@ -149,8 +168,9 @@ def plot(key=None, plot_filter=None, panel_width=390, panel_height=280):
             # is emptied: a uint32 RGBA buffer drawn by the palette glyph (or
             # vice versa) would render as noise.
             is_color = bool((data.get('color') or [False])[0])
-            shown, hidden = ((rgba_glyph, grey_glyph) if is_color
-                             else (grey_glyph, rgba_glyph))
+            shown, hidden = (
+                (rgba_glyph, grey_glyph) if is_color else (grey_glyph, rgba_glyph)
+            )
             shown.visible = True
             hidden.visible = False
             hidden.data_source.data = _no_image()
@@ -175,20 +195,28 @@ def plot(key=None, plot_filter=None, panel_width=390, panel_height=280):
             get_data = make_get_data(position, image_column)
             data = get_data(key)
 
-            p = figure(width=panel_width, height=panel_height,
-                       title='{} — capture {}'.format(angle, position + 1),
-                       x_axis_location=None, y_axis_location=None,
-                       toolbar_location=None)
+            p = figure(
+                width=panel_width,
+                height=panel_height,
+                title=f'{angle} — capture {position + 1}',
+                x_axis_location=None,
+                y_axis_location=None,
+                toolbar_location=None,
+            )
             p.grid.grid_line_color = None
             p.outline_line_color = '#cccccc'
 
             # Shown only while the image source is empty, so an unreachable
             # store or a subject without captures reads as intentional.
-            placeholder = Label(x=panel_width // 2 - 25,
-                                y=panel_height // 2 - 20,
-                                x_units='screen', y_units='screen',
-                                text='No image',
-                                text_color='#999999', text_font_size='12px')
+            placeholder = Label(
+                x=panel_width // 2 - 25,
+                y=panel_height // 2 - 20,
+                x_units='screen',
+                y_units='screen',
+                text='No image',
+                text_color='#999999',
+                text_font_size='12px',
+            )
             p.add_layout(placeholder)
 
             p.x_range = Range1d(0, data['dw'][0])
@@ -205,36 +233,48 @@ def plot(key=None, plot_filter=None, panel_width=390, panel_height=280):
             # bounds it rescales per image, which changes apparent brightness
             # between captures and washes out low-contrast frames.
             grey_glyph = p.image(
-                image='image', x='x', y='y', dw='dw', dh='dh',
-                color_mapper=LinearColorMapper(palette='Greys256',
-                                               low=0, high=255),
-                source=_no_image() if is_color else data)
+                image='image',
+                x='x',
+                y='y',
+                dw='dw',
+                dh='dh',
+                color_mapper=LinearColorMapper(palette='Greys256', low=0, high=255),
+                source=_no_image() if is_color else data,
+            )
             rgba_glyph = p.image_rgba(
-                image='image', x='x', y='y', dw='dw', dh='dh',
-                source=data if is_color else _no_image())
+                image='image',
+                x='x',
+                y='y',
+                dw='dw',
+                dh='dh',
+                source=data if is_color else _no_image(),
+            )
 
             grey_glyph.visible = not is_color
             rgba_glyph.visible = is_color
 
             # Register the glyph that UpdatableFigure writes to; update_view
             # then routes the data to whichever glyph should display it.
-            subplots.append((grey_glyph if not is_color else rgba_glyph,
-                             get_data,
-                             make_update_view(p, placeholder,
-                                              grey_glyph, rgba_glyph)))
+            subplots.append(
+                (
+                    grey_glyph if not is_color else rgba_glyph,
+                    get_data,
+                    make_update_view(p, placeholder, grey_glyph, rgba_glyph),
+                )
+            )
             figures.append(p)
 
     # Plain nested row/column rather than gridplot: a gridplot nested inside
     # another row did not lay out at all here, leaving blank space where the
     # panels should be. Rows of two keep one line per capture.
     ncols = len(IMAGE_COLUMNS)
-    grid = column(*[row(*figures[i:i + ncols])
-                    for i in range(0, len(figures), ncols)])
+    grid = column(
+        *[row(*figures[i : i + ncols]) for i in range(0, len(figures), ncols)]
+    )
 
     return grid, subplots
 
 
 if __name__ == '__main__':
-
     p, subplots = plot()
     show(p)
