@@ -17,3 +17,80 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 exclude = ["contrib", "docs", "tests*"]
+
+[tool.uv]
+# `uv audit` is still gated behind a preview flag. Declaring it here lets the
+# command run without `--preview-features audit-command` on the command line.
+preview-features = ["audit-command"]
+
+[dependency-groups]
+dev = ["pytest>=9.1.1"]
+
+[tool.pytest.ini_options]
+minversion = "9.0"
+# pytest 9 requires args-type options to be real TOML lists.
+addopts = ["-ra", "--showlocals", "--strict-config", "--strict-markers", "--import-mode=importlib"]
+xfail_strict = true
+log_level = "INFO"
+testpaths = ["tests"]
+filterwarnings = [
+    "error",
+    # setuptools>=81 raises this as a UserWarning (datajoint<2 imports
+    # pkg_resources), so the category must stay unpinned.
+    "ignore:pkg_resources is deprecated as an API",
+    # datajoint calls pyparsing APIs that pyparsing itself deprecated; they fire
+    # at import time and belong to datajoint.
+    "ignore::pyparsing.warnings.PyparsingDeprecationWarning",
+]
+
+[tool.ruff]
+target-version = "py310"
+# The code base was never formatted with black; keep its single quotes so the
+# format commit does not rewrite every string literal.
+line-length = 88
+
+[tool.ruff.format]
+quote-style = "preserve"
+
+[tool.ruff.lint]
+extend-select = [
+    "A",    # flake8-builtins: shadowing built-ins
+    "E",    # pycodestyle errors
+    "F",    # pyflakes
+    "I",    # isort
+    "N",    # pep8-naming
+    "T100", # leftover breakpoints / debugger calls
+    "B",    # flake8-bugbear
+    "SIM",  # flake8-simplify
+    "UP",   # pyupgrade
+    "C4",   # flake8-comprehensions
+]
+ignore = [
+    # The viewer modules use `from x import *` throughout (utils, modules,
+    # updatable_figures); removing them means touching every module.
+    # Reference ignores: mixedCase class attrs, arg shadows builtin, non-lowercase local.
+    "N815",
+    "A002",
+    "N806",
+    "F403",
+    "F405",
+    # Left as-is rather than risk a behavior change.
+    "E721",
+    "UP030",
+    # dict(a=1) -> {'a': 1} is an unsafe autofix and widespread (33 hits).
+    "C408",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# These modules are star-imported by the tab/plot modules, so their "unused"
+# imports are really re-exports. Removing them would break those modules.
+"viewer/utils.py" = ["F401"]
+"viewer/modules.py" = ["F401"]
+"viewer/updatable_figures.py" = ["F401"]
+# Deliberate broad excepts so one failing query/diagram does not take the page down.
+"viewer/plots/subject_photos.py" = ["BLE001"]
+# The skip fixture must skip on any connection/config failure.
+"tests/test_import.py" = ["BLE001"]
+# Left as written rather than reword string building / branches.
+"viewer/plots/subject_psych_curve.py" = ["SIM108"]
+"viewer/server.py" = ["BLE001", "FLY002"]

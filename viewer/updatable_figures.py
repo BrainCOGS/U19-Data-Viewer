@@ -4,7 +4,6 @@ This module contains classes that allow convient updates upon selection events
 
 
 class UpdatableFigure:
-
     def __init__(self, fig, subplots):
 
         self.fig = fig
@@ -26,7 +25,7 @@ class UpdatableFigure:
                     fetched[get_data] = get_data(key)
             return fetched[get_data]
 
-        for (subplot, get_data, update_view) in self.subplots:
+        for subplot, get_data, update_view in self.subplots:
             new_data = fetch(get_data)
 
             if type(subplot) == list:
@@ -44,14 +43,13 @@ class UpdatableFigure:
 
 
 class UpdatableFigureCollection:
-
     def __init__(self, figure_list):
 
         self.updatable_list = figure_list
 
     def update(self, key):
 
-        for (fig, plot_filter) in self.updatable_list:
+        for fig, plot_filter in self.updatable_list:
             if plot_filter:
                 fig.update(key, plot_filter)
             else:
@@ -59,7 +57,6 @@ class UpdatableFigureCollection:
 
 
 class UpdatableFigureCollectionFactory:
-
     def __init__(self):
 
         self.figure_creator_list = []
@@ -72,13 +69,12 @@ class UpdatableFigureCollectionFactory:
     def build(self):
 
         updatable_figure_list = []
-        for (creator, plot_filter) in self.figure_creator_list:
+        for creator, plot_filter in self.figure_creator_list:
             if plot_filter:
                 p, subplots = creator(None, plot_filter)
             else:
                 p, subplots = creator()
                 plot_filter = None
-            updatable_figure_list.append(
-                [UpdatableFigure(p, subplots), plot_filter])
+            updatable_figure_list.append([UpdatableFigure(p, subplots), plot_filter])
 
         return UpdatableFigureCollection(updatable_figure_list)
