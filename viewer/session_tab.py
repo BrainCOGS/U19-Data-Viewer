@@ -1,8 +1,8 @@
+from modules import acquisition, subject
 from utils import *
-from modules import subject, acquisition, behavior
+
 from viewer.plots import session_psych_curve
 from viewer.updatable_figures import *
-import pdb
 
 
 def session_tab():
@@ -10,28 +10,40 @@ def session_tab():
     Creates the tab to view all sessions
     '''
 
-    all_subjects = (subject.Subject & acquisition.Session).fetch('subject_fullname').tolist()
-    subjects = Select(title='Subject:', value='All', options=['All'] + all_subjects,
-                      width=150)
+    all_subjects = (
+        (subject.Subject & acquisition.Session).fetch('subject_fullname').tolist()
+    )
+    subjects = Select(
+        title='Subject:', value='All', options=['All'] + all_subjects, width=150
+    )
 
     all_levels = (dj.U('level') & acquisition.Session).fetch('level').tolist()
     all_levels_str = [str(level) for level in all_levels]
-    levels = Select(title='Level:', value='All',
-                    options=['All'] + all_levels_str,
-                    width=150)
+    levels = Select(
+        title='Level:', value='All', options=['All'] + all_levels_str, width=150
+    )
 
     all_tasks = (dj.U('task') & acquisition.Session).fetch('task').tolist()
-    tasks = Select(title='Task:', value='All', options=['All'] + all_tasks,
-                   width=150)
+    tasks = Select(title='Task:', value='All', options=['All'] + all_tasks, width=150)
 
     def get_data_df(filter):
 
-        return pd.DataFrame((
-            acquisition.Session & filter).fetch(
-                'subject_fullname', 'session_date', 'session_number', 'session_location',
-                'task', 'level', 'session_protocol', 'session_performance', 'num_trials',
-                'is_bad_session', 'session_comments',
-                as_dict=True))
+        return pd.DataFrame(
+            (acquisition.Session & filter).fetch(
+                'subject_fullname',
+                'session_date',
+                'session_number',
+                'session_location',
+                'task',
+                'level',
+                'session_protocol',
+                'session_performance',
+                'num_trials',
+                'is_bad_session',
+                'session_comments',
+                as_dict=True,
+            )
+        )
 
     current_filter = dict()
     sessions_df = get_data_df(current_filter)
@@ -65,8 +77,10 @@ def session_tab():
             filter_without_level.pop('level')
 
         subject_levels = (
-            dj.U('level') &
-            (acquisition.Session & filter_without_level)).fetch('level').tolist()
+            (dj.U('level') & (acquisition.Session & filter_without_level))
+            .fetch('level')
+            .tolist()
+        )
         subject_levels_str = [str(level) for level in subject_levels]
         levels.options = ['All'] + subject_levels_str
 
@@ -75,8 +89,10 @@ def session_tab():
             filter_without_task.pop('task')
 
         subject_tasks = (
-            dj.U('task') &
-            (acquisition.Session & filter_without_task)).fetch('task').tolist()
+            (dj.U('task') & (acquisition.Session & filter_without_task))
+            .fetch('task')
+            .tolist()
+        )
 
         tasks.options = ['All'] + subject_tasks
 
@@ -95,8 +111,10 @@ def session_tab():
             filter_without_subject.pop('subject_fullname')
 
         level_subjects = (
-            dj.U('subject_fullname') & (acquisition.Session & filter_without_subject)
-        ).fetch('subject_fullname').tolist()
+            (dj.U('subject_fullname') & (acquisition.Session & filter_without_subject))
+            .fetch('subject_fullname')
+            .tolist()
+        )
 
         subjects.options = ['All'] + level_subjects
 
@@ -105,8 +123,10 @@ def session_tab():
             filter_without_task.pop('task')
 
         level_tasks = (
-            dj.U('task') & (acquisition.Session & filter_without_task)
-        ).fetch('task').tolist()
+            (dj.U('task') & (acquisition.Session & filter_without_task))
+            .fetch('task')
+            .tolist()
+        )
 
         tasks.options = ['All'] + level_tasks
 
@@ -125,8 +145,10 @@ def session_tab():
             filter_without_subject.pop('subject_fullname')
 
         task_subjects = (
-            dj.U('subject_fullname') & (acquisition.Session & filter_without_subject)
-        ).fetch('subject_fullname').tolist()
+            (dj.U('subject_fullname') & (acquisition.Session & filter_without_subject))
+            .fetch('subject_fullname')
+            .tolist()
+        )
 
         subjects.options = ['All'] + task_subjects
 
@@ -136,8 +158,10 @@ def session_tab():
             filter_without_level.pop('level')
 
         task_levels = (
-            dj.U('level') &
-            (acquisition.Session & filter_without_level)).fetch('level').tolist()
+            (dj.U('level') & (acquisition.Session & filter_without_level))
+            .fetch('level')
+            .tolist()
+        )
         task_levels_str = [str(level) for level in task_levels]
 
         levels.options = ['All'] + task_levels_str
@@ -149,29 +173,38 @@ def session_tab():
             selected_index = source.selected.indices[0]
             subject_fullname = str(source.data['subject_fullname'][selected_index])
             session_date = source.data['session_date'][selected_index]
-            figure_collection.update(dict(subject_fullname=subject_fullname,
-                                          session_date=session_date))
+            figure_collection.update(
+                dict(subject_fullname=subject_fullname, session_date=session_date)
+            )
 
         except IndexError:
             pass
 
-    figure_collection = UpdatableFigureCollectionFactory() \
-        .add_figure_creator(session_psych_curve.plot) \
-        .add_figure_creator(session_psych_curve.plot, 'guiding') \
-        .add_figure_creator(session_psych_curve.plot, 'main') \
+    figure_collection = (
+        UpdatableFigureCollectionFactory()
+        .add_figure_creator(session_psych_curve.plot)
+        .add_figure_creator(session_psych_curve.plot, 'guiding')
+        .add_figure_creator(session_psych_curve.plot, 'main')
         .build()
+    )
 
     source.selected.on_change('indices', callback_update_data)
     subjects.on_change('value', callback_subject_filter)
     levels.on_change('value', callback_level_filter)
     tasks.on_change('value', callback_task_filter)
 
-    data_table = DataTable(source=source,
-                           columns=columns,
-                           width=1000,
-                           height=600)
+    data_table = DataTable(source=source, columns=columns, width=1000, height=600)
 
-    return Panel(child=layout(row(column(row(subjects, levels, tasks), data_table),
-                              column(figure_collection.updatable_list[0][0].fig,
-                                     figure_collection.updatable_list[1][0].fig,
-                                     figure_collection.updatable_list[2][0].fig))), title='Session')
+    return Panel(
+        child=layout(
+            row(
+                column(row(subjects, levels, tasks), data_table),
+                column(
+                    figure_collection.updatable_list[0][0].fig,
+                    figure_collection.updatable_list[1][0].fig,
+                    figure_collection.updatable_list[2][0].fig,
+                ),
+            )
+        ),
+        title='Session',
+    )

@@ -1,15 +1,16 @@
-from viewer.modules import subject, acquisition, behavior, puffs
-from viewer.utils import *
 from viewer import subject_filters
+from viewer.modules import acquisition, puffs
+from viewer.utils import *
 
 
 def plot(key=None):
 
     no_data = {
         'session_dates': [np.nan],
-        'performance'  : [np.nan],
-        'level'        : [np.nan],
-        'n_trials'     : [np.nan]}
+        'performance': [np.nan],
+        'level': [np.nan],
+        'n_trials': [np.nan],
+    }
 
     def get_data(key):
 
@@ -20,20 +21,26 @@ def plot(key=None):
             return dict(no_data)
 
         if 'AirPuffs' in tasks:
-            q = (acquisition.Session & key).aggr(puffs.PuffsSession.Trial.proj(), n_trials='count(*)') * acquisition.Session
+            q = (acquisition.Session & key).aggr(
+                puffs.PuffsSession.Trial.proj(), n_trials='count(*)'
+            ) * acquisition.Session
         else:
             q = (acquisition.Session & key).proj(..., n_trials='num_trials')
 
         if len(q):
-            performance_info = q.fetch(
-                format='frame').reset_index()
+            performance_info = q.fetch(format='frame').reset_index()
 
-            data_performance = pd.DataFrame({
-                'session_dates': performance_info['session_date'],
-                'performance'  : performance_info['session_performance'],
-                'level'        : performance_info['level'],
-                'n_trials'     : performance_info['n_trials']})
-            data_performance['session_dates'] = pd.to_datetime(data_performance['session_dates'])
+            data_performance = pd.DataFrame(
+                {
+                    'session_dates': performance_info['session_date'],
+                    'performance': performance_info['session_performance'],
+                    'level': performance_info['level'],
+                    'n_trials': performance_info['n_trials'],
+                }
+            )
+            data_performance['session_dates'] = pd.to_datetime(
+                data_performance['session_dates']
+            )
         else:
             data_performance = dict(no_data)
 
@@ -46,16 +53,17 @@ def plot(key=None):
                 p.y_range = Range1d(0, 10, min_interval=2)
             else:
                 p.y_range = Range1d(
-                    0, max([max(data_performance['level']), 10]), min_interval=2)
+                    0, max([max(data_performance['level']), 10]), min_interval=2
+                )
         elif subplot.y_range_name == 'performance':
             p.extra_y_ranges[subplot.y_range_name] = Range1d(0, 100)
         else:
             if np.isnan(data_performance[subplot.y_range_name][0]):
-                p.extra_y_ranges[subplot.y_range_name] = Range1d(
-                    0, 300)
+                p.extra_y_ranges[subplot.y_range_name] = Range1d(0, 300)
             else:
                 p.extra_y_ranges[subplot.y_range_name] = Range1d(
-                    0, max([300, max(data_performance[subplot.y_range_name])]))
+                    0, max([300, max(data_performance[subplot.y_range_name])])
+                )
 
     BASE_TITLE = 'Performance, trial counts, and task level'
 
@@ -74,42 +82,73 @@ def plot(key=None):
 
     data_performance = get_data(key)
 
-    p = figure(x_axis_type="datetime", width=600, height=300,
-               title=get_title(key),
-               x_axis_label='Date',
-               y_axis_label='Task level', y_axis_location='right')
+    p = figure(
+        x_axis_type="datetime",
+        width=600,
+        height=300,
+        title=get_title(key),
+        x_axis_label='Date',
+        y_axis_label='Task level',
+        y_axis_location='right',
+    )
 
     p.xaxis.formatter = DatetimeTickFormatter(days='%m/%d/%y')
 
     p.y_range = Range1d(0, max([max(data_performance['level']), 10]), min_interval=2)
     level_plot = p.vbar(
-        x='session_dates', top='level',
-        source=data_performance, color='lightblue',
-        legend_label='Level', width=datetime.timedelta(days=0.4))
+        x='session_dates',
+        top='level',
+        source=data_performance,
+        color='lightblue',
+        legend_label='Level',
+        width=datetime.timedelta(days=0.4),
+    )
 
     p.extra_y_ranges['performance'] = Range1d(0, 100)
-    p.extra_y_ranges['n_trials'] = Range1d(0, max([300, max(data_performance['n_trials'])]))
+    p.extra_y_ranges['n_trials'] = Range1d(
+        0, max([300, max(data_performance['n_trials'])])
+    )
 
-    p.add_layout(LinearAxis(y_range_name="performance",
-                            axis_label='Performance [%]'), 'left')
-    p.add_layout(LinearAxis(y_range_name="n_trials",
-                            axis_label='Trial counts'), 'left')
+    p.add_layout(
+        LinearAxis(y_range_name="performance", axis_label='Performance [%]'), 'left'
+    )
+    p.add_layout(LinearAxis(y_range_name="n_trials", axis_label='Trial counts'), 'left')
 
     performance_plot_line = p.line(
-        x='session_dates', y='performance', y_range_name='performance',
-        source=data_performance, color='gray', legend_label='Performance')
+        x='session_dates',
+        y='performance',
+        y_range_name='performance',
+        source=data_performance,
+        color='gray',
+        legend_label='Performance',
+    )
 
     performance_plot_dot = p.scatter(
-        x='session_dates', y='performance', y_range_name='performance',
-        source=data_performance, color='black', legend_label='Performance')
+        x='session_dates',
+        y='performance',
+        y_range_name='performance',
+        source=data_performance,
+        color='black',
+        legend_label='Performance',
+    )
 
     trial_counts_plot_line = p.line(
-        x='session_dates', y='n_trials', y_range_name='n_trials',
-        source=data_performance, color='pink', legend_label='Trial counts')
+        x='session_dates',
+        y='n_trials',
+        y_range_name='n_trials',
+        source=data_performance,
+        color='pink',
+        legend_label='Trial counts',
+    )
 
     trial_counts_plot_dot = p.scatter(
-        x='session_dates', y='n_trials', y_range_name='n_trials',
-        source=data_performance, color='red', legend_label='Trial counts')
+        x='session_dates',
+        y='n_trials',
+        y_range_name='n_trials',
+        source=data_performance,
+        color='red',
+        legend_label='Trial counts',
+    )
 
     p.xgrid.grid_line_color = None
     p.outline_line_color = None
@@ -118,15 +157,16 @@ def plot(key=None):
 
     # p.title has no data_source, so UpdatableFigure falls through to setting
     # .text on it: that is how the rig name follows the selected subject.
-    return p, [(performance_plot_line, get_data, update_view),
-               (performance_plot_dot, get_data, update_view),
-               (trial_counts_plot_line, get_data, update_view),
-               (trial_counts_plot_dot, get_data, update_view),
-               (level_plot, get_data, update_view),
-               (p.title, get_title, None)]
+    return p, [
+        (performance_plot_line, get_data, update_view),
+        (performance_plot_dot, get_data, update_view),
+        (trial_counts_plot_line, get_data, update_view),
+        (trial_counts_plot_dot, get_data, update_view),
+        (level_plot, get_data, update_view),
+        (p.title, get_title, None),
+    ]
 
 
 if __name__ == '__main__':
-
     p, subplots = plot()
     show(p)

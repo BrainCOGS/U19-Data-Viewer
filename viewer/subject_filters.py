@@ -6,9 +6,8 @@ Both the subject tab and the compare tab need the same notions, and the "alive"
 predicate in particular is easy to get subtly wrong, so it lives in one place.
 '''
 
-from viewer.modules import subject, action, acquisition
+from viewer.modules import acquisition, action, subject
 from viewer.utils import *
-
 
 # Housing locations that mean the subject is gone. Distinct from a Dead status:
 # measured against the live database, 436 subjects have a Dead status without
@@ -34,12 +33,13 @@ def dead_subject_names():
     unioned, and datajoint cannot restrict by a Union.
     '''
     latest = dj.U('subject_fullname').aggr(
-        action.SubjectStatus, effective_date='max(effective_date)')
-    by_status = (action.SubjectStatus & latest &
-                 'subject_status="Dead"').fetch('subject_fullname')
+        action.SubjectStatus, effective_date='max(effective_date)'
+    )
+    by_status = (action.SubjectStatus & latest & 'subject_status="Dead"').fetch(
+        'subject_fullname'
+    )
 
-    grave = ' OR '.join('location="{}"'.format(location)
-                        for location in GRAVE_LOCATIONS)
+    grave = ' OR '.join(f'location="{location}"' for location in GRAVE_LOCATIONS)
     by_location = (subject.Subject & grave).fetch('subject_fullname')
 
     return set(by_status) | set(by_location)
@@ -49,8 +49,8 @@ def real_subjects():
     '''subject.Subject without the test accounts' fixtures.'''
     if not TEST_USERS:
         return subject.Subject
-    excluded = ' OR '.join('user_id="{}"'.format(user) for user in TEST_USERS)
-    return subject.Subject & 'NOT ({})'.format(excluded)
+    excluded = ' OR '.join(f'user_id="{user}"' for user in TEST_USERS)
+    return subject.Subject & f'NOT ({excluded})'
 
 
 def living_subjects():
@@ -83,9 +83,11 @@ def rigs_of(subject_fullname):
     '''
     sessions = acquisition.Session & dict(subject_fullname=subject_fullname)
     counts = dj.U('session_location').aggr(sessions, n='count(*)')
-    return [row['session_location']
-            for row in counts.fetch(order_by='n DESC', as_dict=True)
-            if row['session_location']]
+    return [
+        row['session_location']
+        for row in counts.fetch(order_by='n DESC', as_dict=True)
+        if row['session_location']
+    ]
 
 
 def rigs_by_subject(restriction=None):
@@ -99,26 +101,25 @@ def rigs_by_subject(restriction=None):
     if restriction is not None:
         sessions = sessions & restriction
 
-    counts = dj.U('subject_fullname', 'session_location').aggr(
-        sessions, n='count(*)')
+    counts = dj.U('subject_fullname', 'session_location').aggr(sessions, n='count(*)')
 
     rigs = {}
     for row in counts.fetch(order_by='n DESC', as_dict=True):
         if row['session_location']:
-            rigs.setdefault(row['subject_fullname'], []).append(
-                row['session_location'])
+            rigs.setdefault(row['subject_fullname'], []).append(row['session_location'])
     return rigs
 
 
 def all_rigs():
     '''Every rig that has hosted a session, for populating a filter.'''
     counts = dj.U('session_location').aggr(acquisition.Session, n='count(*)')
-    return [row['session_location']
-            for row in counts.fetch(order_by='n DESC', as_dict=True)
-            if row['session_location']]
+    return [
+        row['session_location']
+        for row in counts.fetch(order_by='n DESC', as_dict=True)
+        if row['session_location']
+    ]
 
 
 def subjects_on_rig(rig):
     '''Subjects with at least one session on the given rig.'''
-    return dj.U('subject_fullname') & (
-        acquisition.Session & dict(session_location=rig))
+    return dj.U('subject_fullname') & (acquisition.Session & dict(session_location=rig))

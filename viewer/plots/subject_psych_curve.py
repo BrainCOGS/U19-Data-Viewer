@@ -1,7 +1,6 @@
-from viewer.utils import *
-from viewer.modules import subject, behavior, acquisition, puffs
+from viewer.modules import acquisition, behavior, puffs, subject
 from viewer.plots.psych_curve import psych_curve
-import pdb
+from viewer.utils import *
 
 default_data = {'x': [np.nan], 'y': [np.nan]}
 
@@ -16,16 +15,24 @@ def plot(key=None, plot_filter=None):
                 cpsych = behavior.TowersSubjectCumulativePsych
         else:
             if acquisition.Session & key & 'task="AirPuffs"':
-                cpsych = puffs.PuffsSubjectCumulativePsychLevel & \
-                    dict(psych_level=int(plot_filter['level']))
+                cpsych = puffs.PuffsSubjectCumulativePsychLevel & dict(
+                    psych_level=int(plot_filter['level'])
+                )
             else:
-                cpsych = behavior.TowersSubjectCumulativePsychLevel & \
-                    dict(psych_level=int(plot_filter['level']))
+                cpsych = behavior.TowersSubjectCumulativePsychLevel & dict(
+                    psych_level=int(plot_filter['level'])
+                )
 
-        return cpsych & (acquisition.Session &
-                         (dj.U('subject_fullname', 'session_start_time') & (subject.Subject & key).aggr(
-            acquisition.Session & cpsych,
-            session_start_time='max(session_start_time)')))
+        return cpsych & (
+            acquisition.Session
+            & (
+                dj.U('subject_fullname', 'session_start_time')
+                & (subject.Subject & key).aggr(
+                    acquisition.Session & cpsych,
+                    session_start_time='max(session_start_time)',
+                )
+            )
+        )
 
     def get_psych_data(key, plot_filter):
 
@@ -33,8 +40,10 @@ def plot(key=None, plot_filter=None):
         q = create_query(key, plot_filter)
         if len(q):
             psych = q.fetch1()
-            data = {'x': np.atleast_1d(np.squeeze(psych['subject_delta_data'])).tolist(),
-                    'y': np.atleast_1d(np.squeeze(psych['subject_pright_data'])).tolist()}
+            data = {
+                'x': np.atleast_1d(np.squeeze(psych['subject_delta_data'])).tolist(),
+                'y': np.atleast_1d(np.squeeze(psych['subject_pright_data'])).tolist(),
+            }
 
         return data
 
@@ -44,12 +53,13 @@ def plot(key=None, plot_filter=None):
         q = create_query(key, plot_filter)
         if len(q):
             psych = q.fetch1()
-            data = {'x': np.atleast_1d(np.squeeze(psych['subject_delta_error'])).tolist(),
-                    'y': np.atleast_1d(np.squeeze(psych['subject_pright_error'])).tolist()}
+            data = {
+                'x': np.atleast_1d(np.squeeze(psych['subject_delta_error'])).tolist(),
+                'y': np.atleast_1d(np.squeeze(psych['subject_pright_error'])).tolist(),
+            }
 
         if data['x'] is None:
-            data = {'x': [0],
-                   'y': [0]}
+            data = {'x': [0], 'y': [0]}
 
         return data
 
@@ -59,12 +69,13 @@ def plot(key=None, plot_filter=None):
         q = create_query(key, plot_filter)
         if len(q):
             psych = q.fetch1()
-            data = {'x': np.atleast_1d(np.squeeze(psych['subject_delta_fit'])).tolist(),
-                    'y': np.atleast_1d(np.squeeze(psych['subject_pright_fit'])).tolist()}
+            data = {
+                'x': np.atleast_1d(np.squeeze(psych['subject_delta_fit'])).tolist(),
+                'y': np.atleast_1d(np.squeeze(psych['subject_pright_fit'])).tolist(),
+            }
 
         if data['x'] is None:
-            data = {'x': [-1],
-                   'y': [-1]}
+            data = {'x': [-1], 'y': [-1]}
 
         return data
 
@@ -83,17 +94,22 @@ def plot(key=None, plot_filter=None):
     psych_fit = get_psych_fit(key, plot_filter)
     psych_label = get_label(key, plot_filter)
 
-    p, plots = psych_curve(psych_data, psych_error, psych_fit,
-                           'Subject cumulative psychometric curve so far',
-                           psych_label)
+    p, plots = psych_curve(
+        psych_data,
+        psych_error,
+        psych_fit,
+        'Subject cumulative psychometric curve so far',
+        psych_label,
+    )
 
-    return p, [(plots[0], get_psych_data, None),
-               (plots[1], get_psych_error, None),
-               (plots[2], get_psych_fit, None),
-               (plots[3], get_label, None)]
+    return p, [
+        (plots[0], get_psych_data, None),
+        (plots[1], get_psych_error, None),
+        (plots[2], get_psych_fit, None),
+        (plots[3], get_label, None),
+    ]
 
 
 if __name__ == '__main__':
-
     p, subplots = plot()
     show(p)
