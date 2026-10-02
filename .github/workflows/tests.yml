@@ -1,0 +1,68 @@
+name: Tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.14"]
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.2.0
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --locked --python "$PYTHON_VERSION"
+        env:
+          PYTHON_VERSION: ${{ matrix.python-version }}
+
+      # No DataJoint database is available here; tests that need one skip.
+      - name: Run tests
+        run: uv run --locked pytest
+
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.2.0
+        with:
+          enable-cache: true
+
+      # Audits the locked tree against OSV and fails on any finding. `--locked`
+      # also asserts uv.lock is in sync with pyproject.toml.
+      #
+      # GHSA-h35f-9h28-mq5c (setuptools sdist MANIFEST.in
+      # bypass) are ignored on purpose: the fix is in setuptools 83, which
+      # removed pkg_resources, and datajoint<2 imports pkg_resources on every
+      # `import datajoint`, so taking the fix breaks the app. The flaw is in
+      # building sdists with setuptools on macOS, which this project does not do.
+      # Remove once the datajoint 2.x migration lands.
+      - name: Audit dependencies
+        run: >-
+          uv audit --locked
+          --ignore GHSA-h35f-9h28-mq5c
