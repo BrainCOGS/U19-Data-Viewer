@@ -17,3 +17,16 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 exclude = ["contrib", "docs", "tests*"]
+
+[tool.uv]
+# `uv audit` is still gated behind a preview flag. Declaring it here lets the
+# command run without `--preview-features audit-command` on the command line.
+preview-features = ["audit-command"]
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = ["-ra", "--strict-config", "--strict-markers", "--import-mode=importlib"]
+testpaths = ["tests"]
