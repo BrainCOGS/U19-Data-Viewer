@@ -20,6 +20,17 @@ Dependencies are managed with [uv](https://docs.astral.sh/uv/) and pinned in `uv
 
 To change dependencies, edit the `dependencies` list in `pyproject.toml` and run `uv lock` to refresh `uv.lock`. Commit both files — the Docker build installs with `uv sync --locked`, which fails if the lockfile is out of date.
 
+### Linting and tests
+
+Linting runs through [prek](https://github.com/j178/prek) (compatible with pre-commit).
+
+```
+uv tool install prek
+prek install            # run the hooks on every commit
+prek run --all-files    # run them once over the whole repo
+uv run pytest           # tests that need a DataJoint database skip without one
+```
+
 ### Infrastructure
 
 - The `U19-Data-Viewer` is currently hosted at `braincogs01.pni.princeton.edu`.
@@ -55,7 +66,7 @@ To change dependencies, edit the `dependencies` list in `pyproject.toml` and run
 
 2. Clone the repository.
     ```
-    git clone https://github.com/<BrainCOGS or vathes>/U19-Data-Viewer.git 
+    git clone https://github.com/<BrainCOGS or vathes>/U19-Data-Viewer.git
     ```
 
 3. Copy the file `env.template` to `.env`.

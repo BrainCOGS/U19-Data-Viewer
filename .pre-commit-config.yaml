@@ -40,6 +40,6 @@ repos:
     - id: uv-lock
 
 - repo: https://github.com/abravalheri/validate-pyproject
-  rev: v0.26
+  rev: "0.26"
   hooks:
     - id: validate-pyproject
