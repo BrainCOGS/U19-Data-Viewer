@@ -7,7 +7,9 @@ license = "LGPL-3.0-or-later"
 keywords = ["database", "viewer"]
 requires-python = ">=3.10"
 dependencies = [
-    "datajoint<2",
+    # 0.14.10 is the first 0.14 release without pkg_resources; 2.x cannot read
+    # dj_local_conf.json. Pin it exactly.
+    "datajoint==0.14.10",
     "bokeh>=3.8.2,<3.10.0",
 ]
 
@@ -49,9 +51,6 @@ log_level = "INFO"
 testpaths = ["tests"]
 filterwarnings = [
     "error",
-    # setuptools>=81 raises this as a UserWarning (datajoint<2 imports
-    # pkg_resources), so the category must stay unpinned.
-    "ignore:pkg_resources is deprecated as an API",
     # datajoint calls pyparsing APIs that pyparsing itself deprecated; they fire
     # at import time and belong to datajoint.
     "ignore::pyparsing.warnings.PyparsingDeprecationWarning",
