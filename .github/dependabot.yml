@@ -123,15 +123,8 @@ updates:
     ignore:
       # datajoint 2.x renamed its config file to datajoint.json and ignores the
       # dj_local_conf.json this repo ships, so a 2.x bump breaks every
-      # deployment. pyproject.toml pins datajoint<2 for the same reason. Remove
-      # once the datajoint 2.x migration lands.
+      # deployment. pyproject.toml pins datajoint==0.14.10 for the same
+      # reason. Remove once the datajoint 2.x migration lands.
       - dependency-name: "datajoint"
         versions:
           - ">=2.0"
-      # datajoint <2.0 imports pkg_resources (plugin.py, pulled in on every
-      # `import datajoint`). setuptools 83.0.0 removed pkg_resources outright,
-      # so any bump to >=82 makes `import datajoint` fail. Remove together with
-      # the datajoint ignore above.
-      - dependency-name: "setuptools"
-        versions:
-          - ">=82"

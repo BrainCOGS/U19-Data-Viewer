@@ -55,14 +55,5 @@ jobs:
 
       # Audits the locked tree against OSV and fails on any finding. `--locked`
       # also asserts uv.lock is in sync with pyproject.toml.
-      #
-      # GHSA-h35f-9h28-mq5c (setuptools sdist MANIFEST.in
-      # bypass) are ignored on purpose: the fix is in setuptools 83, which
-      # removed pkg_resources, and datajoint<2 imports pkg_resources on every
-      # `import datajoint`, so taking the fix breaks the app. The flaw is in
-      # building sdists with setuptools on macOS, which this project does not do.
-      # Remove once the datajoint 2.x migration lands.
       - name: Audit dependencies
-        run: >-
-          uv audit --locked
-          --ignore GHSA-h35f-9h28-mq5c
+        run: uv audit --locked
