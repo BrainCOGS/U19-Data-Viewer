@@ -2,13 +2,13 @@
 
 A Flask web viewer for the U19 DataJoint pipeline data (`viewer/`), hosted on
 braincogs01 behind Apache (`apache/`, `docker-compose.yml`). Run it locally with
-`uv run viewer/server.py`. Python >= 3.10, managed with uv.
+`uv run viewer/server.py`. Python >= 3.11, managed with uv.
 
 ## Setup and tests
 
 ```bash
 uv sync --locked
-uv run --locked pytest      # CI: Python 3.10 and 3.14
+uv run --locked pytest      # CI: Python 3.11 and 3.14
 ```
 
 Lint: `uvx prek run --all-files` (the same as CI's Lint workflow).
